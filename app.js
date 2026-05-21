@@ -57,6 +57,23 @@ document.addEventListener('DOMContentLoaded', () => {
         detailIcao24: document.getElementById('detail-icao24'),
         detailGate: document.getElementById('detail-gate'),
         detailGateContainer: document.getElementById('detail-gate-container'),
+        
+        // Enriched metadata fields
+        detailPhotoImg: document.getElementById('detail-photo-img'),
+        detailPhotoCredit: document.getElementById('detail-photo-credit'),
+        detailAircraftFullname: document.getElementById('detail-aircraft-fullname'),
+        detailOriginFull: document.getElementById('detail-origin-full'),
+        detailDestinationFull: document.getElementById('detail-destination-full'),
+        detailDepTime: document.getElementById('detail-dep-time'),
+        detailArrTime: document.getElementById('detail-arr-time'),
+        detailProgressFill: document.getElementById('detail-progress-fill'),
+        detailProgressPlane: document.getElementById('detail-progress-plane'),
+        detailProgressPercent: document.getElementById('detail-progress-percent'),
+        detailRegistration: document.getElementById('detail-registration'),
+        detailSerial: document.getElementById('detail-serial'),
+        detailAge: document.getElementById('detail-age'),
+        detailManufacturer: document.getElementById('detail-manufacturer'),
+        detailEngines: document.getElementById('detail-engines'),
 
         // Tables
         arrivalsTableBody: document.querySelector('#arrivals-table tbody'),
@@ -275,11 +292,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Add or update current flight markers
         filtered.forEach(flight => {
             const isSelected = state.selectedFlightId === flight.icao24;
+            const statusClass = flight.status.toLowerCase().replace(' ', '-');
+            const routeText = (flight.origin_iata && flight.destination_iata)
+                ? `${flight.origin_iata} ➔ ${flight.destination_iata}`
+                : (flight.type === 'on_ground' ? 'GND' : 'BOM ➔ DEL');
             
-            // Build DivIcon airplane element
+            // Build DivIcon airplane element with outer wrapper for label and inner wrapper for rotation
             const customIcon = L.divIcon({
                 className: 'airplane-marker' + (isSelected ? ' selected' : ''),
-                html: `<div class="airplane-marker-wrapper" style="transform: rotate(${flight.heading}deg)">${PLANE_SVG}</div>`,
+                html: `
+                    <div class="airplane-marker-container status-${statusClass}">
+                        <div class="airplane-marker-wrapper" style="transform: rotate(${flight.heading}deg)">
+                            ${PLANE_SVG}
+                        </div>
+                        <div class="airplane-marker-label">
+                            <span class="label-callsign">${flight.callsign}</span>
+                            <span class="label-route">${routeText}</span>
+                        </div>
+                    </div>
+                `,
                 iconSize: [32, 32],
                 iconAnchor: [16, 16]
             });
@@ -291,12 +322,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 marker.setIcon(customIcon);
                 
                 // Update tooltip text
-                marker.getTooltip().setContent(`<strong>${flight.callsign}</strong><br>${formatAltitude(flight.altitude)}`);
+                marker.getTooltip().setContent(`<strong>${flight.callsign}</strong><br>${routeText}<br>${formatAltitude(flight.altitude)}`);
             } else {
                 // Create new marker
                 const marker = L.marker([flight.lat, flight.lon], { icon: customIcon })
                     .addTo(state.map)
-                    .bindTooltip(`<strong>${flight.callsign}</strong><br>${formatAltitude(flight.altitude)}`, {
+                    .bindTooltip(`<strong>${flight.callsign}</strong><br>${routeText}<br>${formatAltitude(flight.altitude)}`, {
                         direction: 'top',
                         offset: [0, -10],
                         className: 'airplane-tooltip',
@@ -359,13 +390,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate the flight info details sidebar panel
     function updateTelemetryPanel(flight) {
+        // Basic Info
         elements.detailCallsign.textContent = flight.callsign;
         elements.detailLogo.textContent = flight.logo;
         elements.detailAirline.textContent = flight.airline;
         elements.detailModel.textContent = flight.model;
-        elements.detailOrigin.textContent = flight.origin.split(' ')[0];
-        elements.detailDestination.textContent = flight.destination.split(' ')[0];
         
+        // Enriched specification fields
+        elements.detailAircraftFullname.textContent = flight.aircraft_fullname || flight.model;
+        elements.detailRegistration.textContent = flight.registration || 'N/A';
+        elements.detailSerial.textContent = flight.serial_number || 'N/A';
+        elements.detailAge.textContent = flight.age || 'N/A';
+        elements.detailManufacturer.textContent = flight.manufacturer || 'N/A';
+        elements.detailEngines.textContent = flight.engines || 'N/A';
+        
+        // JetPhotos credit & image binding
+        elements.detailPhotoImg.src = flight.photo_url || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80';
+        elements.detailPhotoCredit.textContent = flight.photographer ? `Photo © ${flight.photographer} / JetPhotos` : 'Photo © JetPhotos';
+        
+        // Airport Names and schedules
+        elements.detailOrigin.textContent = flight.origin_iata || flight.origin.split(' ')[0];
+        elements.detailDestination.textContent = flight.destination_iata || flight.destination.split(' ')[0];
+        elements.detailOriginFull.textContent = flight.origin_fullname || flight.origin;
+        elements.detailDestinationFull.textContent = flight.destination_fullname || flight.destination;
+        elements.detailDepTime.textContent = flight.dep_time || '--:--';
+        elements.detailArrTime.textContent = flight.arr_time || '--:--';
+        
+        // Compute and update route progress timeline
+        let progressPercent = 0;
+        if (flight.type === 'on_ground') {
+            progressPercent = 0;
+        } else if (flight.dep_time && flight.arr_time) {
+            try {
+                const [depH, depM] = flight.dep_time.split(':').map(Number);
+                const [arrH, arrM] = flight.arr_time.split(':').map(Number);
+                
+                const depTotalMin = depH * 60 + depM;
+                let arrTotalMin = arrH * 60 + arrM;
+                
+                if (arrTotalMin < depTotalMin) {
+                    arrTotalMin += 24 * 60; // overnight flight wrap
+                }
+                
+                const duration = arrTotalMin - depTotalMin;
+                
+                const now = new Date();
+                let currentTotalMin = now.getHours() * 60 + now.getMinutes();
+                
+                if (currentTotalMin < depTotalMin && arrTotalMin > 24 * 60) {
+                    currentTotalMin += 24 * 60;
+                }
+                
+                if (currentTotalMin >= depTotalMin && currentTotalMin <= arrTotalMin) {
+                    progressPercent = Math.round(((currentTotalMin - depTotalMin) / duration) * 100);
+                } else if (currentTotalMin > arrTotalMin) {
+                    progressPercent = 100;
+                } else {
+                    progressPercent = 30; // En route approximation
+                }
+            } catch (err) {
+                progressPercent = 50;
+            }
+        }
+        
+        // Calibrate progress bar position based on flight state
+        if (flight.status === 'Final Approach') {
+            progressPercent = Math.max(progressPercent, 90);
+        } else if (flight.status === 'Descending') {
+            progressPercent = Math.max(progressPercent, 70);
+        } else if (flight.status === 'Climbing') {
+            progressPercent = Math.min(progressPercent, 15);
+        } else if (flight.status === 'Departed') {
+            progressPercent = Math.min(progressPercent, 30);
+        } else if (flight.status === 'Landed') {
+            progressPercent = 100;
+        }
+        
+        progressPercent = Math.max(0, Math.min(100, progressPercent));
+        elements.detailProgressFill.style.width = `${progressPercent}%`;
+        elements.detailProgressPlane.style.left = `${progressPercent}%`;
+        
+        let progressText = `Flight Progress: ${progressPercent}% complete`;
+        if (flight.status === 'Landed') {
+            progressText = `Landed at ${flight.arr_time}`;
+        } else if (flight.status === 'Boarding' || flight.status === 'Taxiing') {
+            progressText = `Departure scheduled at ${flight.dep_time}`;
+        }
+        elements.detailProgressPercent.textContent = progressText;
+
+        // Coordinates & Telemetry
         elements.detailAltitude.textContent = formatAltitude(flight.altitude);
         elements.detailSpeed.textContent = formatSpeed(flight.speed);
         elements.detailHeading.textContent = `${flight.heading}°`;

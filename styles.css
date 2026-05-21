@@ -554,46 +554,164 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 1px;
 }
 
+/* JetPhotos Card Styling */
+.jetphotos-card {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    background: #000000;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+.jetphotos-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.jetphotos-card:hover img {
+    transform: scale(1.05);
+}
+
+.jetphotos-watermark {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(4, 6, 12, 0.85);
+    backdrop-filter: blur(4px);
+    padding: 6px 12px;
+    font-size: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 5;
+}
+
+.jp-logo {
+    color: #ffeb3b; /* Premium JetPhotos Yellow */
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 4px rgba(255, 235, 59, 0.2);
+}
+
+.jp-credit {
+    color: #e0e0e0;
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+}
+
 /* Flight Route Graphics */
 .route-block {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 14px;
+    padding: 10px 14px;
     position: relative;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: var(--border-radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .route-node {
     display: flex;
     flex-direction: column;
+    max-width: 42%;
+}
+
+.route-node:first-child {
+    align-items: flex-start;
+}
+
+.route-node:last-child {
+    align-items: flex-end;
+    text-align: right;
 }
 
 .route-node .node-label {
-    font-size: 9px;
+    font-size: 8.5px;
     color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 .route-node strong {
-    font-size: 16px;
+    font-size: 20px;
     color: #ffffff;
     font-family: 'Outfit', sans-serif;
     letter-spacing: 0.02em;
-    margin-top: 2px;
+    margin-top: 1px;
+}
+
+.route-node .node-time {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--accent-amber);
+    margin-top: 1px;
+    font-weight: 500;
 }
 
 .route-arrow {
     color: var(--accent-cyan);
-    font-size: 16px;
+    font-size: 18px;
     text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
-    animation: flight-pass 3s infinite linear;
+    transform: rotate(90deg);
 }
 
-@keyframes flight-pass {
-    0% { transform: translateX(-15px) rotate(90deg); opacity: 0.2; }
-    50% { transform: translateX(0) rotate(90deg); opacity: 1; }
-    100% { transform: translateX(15px) rotate(90deg); opacity: 0.2; }
+/* Route Progress Container */
+.progress-container {
+    padding: 4px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: -4px;
+}
+
+.progress-track {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 1.5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+    border-radius: 1.5px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-plane {
+    position: absolute;
+    transform: translate(-50%, -50%) rotate(90deg);
+    color: var(--accent-green);
+    font-size: 12px;
+    top: 50%;
+    text-shadow: 0 0 6px var(--accent-green);
+    left: 0%;
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 .telemetry-grid {
@@ -844,6 +962,16 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
 }
 
+/* Outer marker container */
+.airplane-marker-container {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .airplane-marker-wrapper {
     position: relative;
     width: 32px;
@@ -868,10 +996,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .airplane-marker.selected .airplane-marker-wrapper::before {
     background: rgba(0, 230, 118, 0.2);
-    border: 2px solid var(--accent-green);
+    border: 2.5px solid var(--accent-green) !important;
     width: 20px;
     height: 20px;
-    box-shadow: 0 0 12px var(--accent-green);
+    box-shadow: 0 0 12px var(--accent-green) !important;
 }
 
 .airplane-svg {
@@ -882,11 +1010,120 @@ h1, h2, h3, h4, h5, h6 {
     transition: fill 0.3s ease;
 }
 
-.airplane-marker.selected .airplane-svg {
+/* Status-based Plane Marker Coloring */
+.airplane-marker-container.status-climbing .airplane-svg,
+.airplane-marker-container.status-departed .airplane-svg {
+    fill: var(--accent-cyan);
+    filter: drop-shadow(0 0 3px rgba(0, 229, 255, 0.7));
+}
+.airplane-marker-container.status-climbing .airplane-marker-wrapper::before,
+.airplane-marker-container.status-departed .airplane-marker-wrapper::before {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: rgba(0, 229, 255, 0.4);
+}
+
+.airplane-marker-container.status-descending .airplane-svg,
+.airplane-marker-container.status-final-approach .airplane-svg {
     fill: var(--accent-green);
-    filter: drop-shadow(0 0 4px rgba(0, 230, 118, 0.8));
+    filter: drop-shadow(0 0 3px rgba(0, 230, 118, 0.7));
+}
+.airplane-marker-container.status-descending .airplane-marker-wrapper::before,
+.airplane-marker-container.status-final-approach .airplane-marker-wrapper::before {
+    background: rgba(0, 230, 118, 0.15);
+    border-color: rgba(0, 230, 118, 0.4);
+}
+
+.airplane-marker-container.status-en-route .airplane-svg {
+    fill: var(--accent-amber);
+    filter: drop-shadow(0 0 3px rgba(255, 179, 0, 0.7));
+}
+.airplane-marker-container.status-en-route .airplane-marker-wrapper::before {
+    background: rgba(255, 179, 0, 0.1);
+    border-color: rgba(255, 179, 0, 0.3);
+}
+
+.airplane-marker-container.status-on-ground .airplane-svg,
+.airplane-marker-container.status-landed .airplane-svg,
+.airplane-marker-container.status-taxiing .airplane-svg,
+.airplane-marker-container.status-boarding .airplane-svg {
+    fill: #90a4ae;
+    filter: drop-shadow(0 0 1px rgba(144, 164, 174, 0.4));
+}
+.airplane-marker-container.status-on-ground .airplane-marker-wrapper::before,
+.airplane-marker-container.status-landed .airplane-marker-wrapper::before,
+.airplane-marker-container.status-taxiing .airplane-marker-wrapper::before,
+.airplane-marker-container.status-boarding .airplane-marker-wrapper::before {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.airplane-marker.selected .airplane-svg {
+    fill: var(--accent-green) !important;
+    filter: drop-shadow(0 0 6px rgba(0, 230, 118, 0.9)) !important;
     width: 26px;
     height: 26px;
+}
+
+/* Horizontal Map Marker Floating Label */
+.airplane-marker-label {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(5, 10, 24, 0.9);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    color: #ffffff;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.airplane-marker-label .label-callsign {
+    color: #ffffff;
+    letter-spacing: 0.03em;
+    font-size: 8.5px;
+}
+
+.airplane-marker-label .label-route {
+    color: var(--accent-cyan);
+    font-size: 7.5px;
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+/* Selected marker label highlight */
+.airplane-marker.selected .airplane-marker-label {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.35);
+}
+
+.airplane-marker.selected .airplane-marker-label .label-route {
+    color: var(--accent-green);
+}
+
+/* If plane is on ground, show clean labels */
+.airplane-marker-container.status-on-ground .airplane-marker-label,
+.airplane-marker-container.status-landed .airplane-marker-label,
+.airplane-marker-container.status-taxiing .airplane-marker-label,
+.airplane-marker-container.status-boarding .airplane-marker-label {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+.airplane-marker-container.status-on-ground .airplane-marker-label .label-route,
+.airplane-marker-container.status-landed .airplane-marker-label .label-route,
+.airplane-marker-container.status-taxiing .airplane-marker-label .label-route,
+.airplane-marker-container.status-boarding .airplane-marker-label .label-route {
+    color: var(--text-muted);
 }
 
 /* Tooltip overlay styling */

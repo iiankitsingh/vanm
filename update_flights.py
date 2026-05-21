@@ -59,6 +59,219 @@ def fetch_live_flights():
             raise Exception(f"HTTP Error {response.status}")
         return json.loads(response.read().decode("utf-8"))
 
+def get_flight_metadata(callsign, aircraft_type, flight_type, closer_airport, custom_origin=None, custom_dest=None):
+    # Determine airline from callsign
+    prefix = callsign[:3]
+    
+    # Generate realistic registration based on country prefix
+    if prefix in ["UAE", "ETD"]:
+        reg = f"A6-{random.choice('EFGH')}{random.choice('JKLMNOPQ')}{random.choice('ABCDEF')}"
+    elif prefix == "SIA":
+        reg = f"9V-{random.choice('SMN')}{random.choice('ABCDE')}{random.choice('FGHIJ')}"
+    elif prefix == "QTR":
+        reg = f"A7-{random.choice('ALM')}{random.choice('ABCDE')}{random.choice('FGHIJ')}"
+    elif prefix == "BAW":
+        reg = f"G-X{random.choice('WYZ')}{random.choice('ABCDE')}{random.choice('FGHIJ')}"
+    elif prefix == "LHA":
+        reg = f"D-A{random.choice('BCE')}{random.choice('ABCDE')}{random.choice('FGHIJ')}"
+    else:
+        # Default Indian registration prefix VT-
+        reg_char = "I"
+        if prefix == "IGO": reg_char = random.choice(["I", "Y"])
+        elif prefix == "AIC": reg_char = random.choice(["A", "E"])
+        elif prefix == "VTI": reg_char = "T"
+        elif prefix == "SEJ": reg_char = "S"
+        elif prefix == "AKJ": reg_char = "K"
+        reg = f"VT-{reg_char}{random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}{random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}"
+
+    # Model specific details
+    model_data = {
+        "A20N": {
+            "name": "Airbus A320-251N (A20N)",
+            "engines": "2x CFM LEAP-1A26",
+            "photo_url": "https://images.unsplash.com/photo-1540962351504-03099e0a754b?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (8500, 11500),
+            "age_range": (0.5, 6.0)
+        },
+        "A321": {
+            "name": "Airbus A321-271NX (A321)",
+            "engines": "2x PW1133G-JM",
+            "photo_url": "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (9000, 12000),
+            "age_range": (0.5, 4.0)
+        },
+        "B77W": {
+            "name": "Boeing 777-300ER (B77W)",
+            "engines": "2x GE GE90-115B",
+            "photo_url": "https://images.unsplash.com/photo-1606761568499-6d2451b23c66?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (35000, 43000),
+            "age_range": (5.0, 12.0)
+        },
+        "A359": {
+            "name": "Airbus A350-941 (A359)",
+            "engines": "2x RR Trent XWB-84",
+            "photo_url": "https://images.unsplash.com/photo-1517999144091-3d9dca6d1e43?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (100, 500),
+            "age_range": (1.0, 8.0)
+        },
+        "B788": {
+            "name": "Boeing 787-8 Dreamliner (B788)",
+            "engines": "2x RR Trent 1000",
+            "photo_url": "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (34000, 39000),
+            "age_range": (4.0, 10.0)
+        },
+        "B38M": {
+            "name": "Boeing 737 MAX 8 (B38M)",
+            "engines": "2x CFM LEAP-1B27",
+            "photo_url": "https://images.unsplash.com/photo-1473862170180-84427c485ade?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (43000, 45000),
+            "age_range": (0.5, 5.0)
+        },
+        "GLF6": {
+            "name": "Gulfstream G650ER (GLF6)",
+            "engines": "2x RR BR725A1-12",
+            "photo_url": "https://images.unsplash.com/photo-1527261834078-9b37d35a4a32?auto=format&fit=crop&w=600&q=80",
+            "msn_range": (6000, 6500),
+            "age_range": (2.0, 10.0)
+        }
+    }
+    
+    # Check model
+    m_info = model_data.get(aircraft_type, {
+        "name": f"Aircraft {aircraft_type}",
+        "engines": "Twin Jet Engines",
+        "photo_url": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80",
+        "msn_range": (1000, 9999),
+        "age_range": (1.0, 15.0)
+    })
+    
+    # Generate age & serial number
+    random.seed(callsign) # Seed based on callsign to maintain consistency across runs
+    age = round(random.uniform(m_info["age_range"][0], m_info["age_range"][1]), 1)
+    msn = random.randint(m_info["msn_range"][0], m_info["msn_range"][1])
+    
+    # Reset random seed
+    random.seed()
+    
+    # Airport names mapping
+    airports = {
+        "VABB": {"fullname": "Chhatrapati Shivaji Maharaj Intl (BOM/VABB)", "city": "Mumbai", "iata": "BOM"},
+        "VANM": {"fullname": "Navi Mumbai International (NMIA/VANM)", "city": "Navi Mumbai", "iata": "NMIA"},
+        "VIDP": {"fullname": "Indira Gandhi International (DEL/VIDP)", "city": "Delhi", "iata": "DEL"},
+        "VOBL": {"fullname": "Kempegowda International (BLR/VOBL)", "city": "Bangalore", "iata": "BLR"},
+        "VOMM": {"fullname": "Chennai International (MAA/VOMM)", "city": "Chennai", "iata": "MAA"},
+        "VOGO": {"fullname": "Manohar International (GOX/VOGO)", "city": "Goa", "iata": "GOX"},
+        "VAPO": {"fullname": "Pune Airport (PNQ/VAPO)", "city": "Pune", "iata": "PNQ"},
+        "OMDB": {"fullname": "Dubai International (DXB/OMDB)", "city": "Dubai", "iata": "DXB"},
+        "WSSS": {"fullname": "Singapore Changi (SIN/WSSS)", "city": "Singapore", "iata": "SIN"},
+        "EGLL": {"fullname": "London Heathrow (LHR/EGLL)", "city": "London", "iata": "LHR"},
+        "QTR": {"fullname": "Doha Hamad International (DOH/OTBD)", "city": "Doha", "iata": "DOH"},
+        "AUH": {"fullname": "Abu Dhabi International (AUH/OMAA)", "city": "Abu Dhabi", "iata": "AUH"}
+    }
+    
+    # Map origin and destination
+    origin = None
+    destination = None
+    
+    # If custom ones are supplied like "Dubai (OMDB)"
+    if custom_origin:
+        if "(" in custom_origin and ")" in custom_origin:
+            code = custom_origin.split("(")[1].split(")")[0]
+            if code in airports:
+                origin = code
+            else:
+                origin = custom_origin
+        else:
+            origin = custom_origin
+            
+    if custom_dest:
+        if "(" in custom_dest and ")" in custom_dest:
+            code = custom_dest.split("(")[1].split(")")[0]
+            if code in airports:
+                destination = code
+            else:
+                destination = custom_dest
+        else:
+            destination = custom_dest
+
+    # Auto generation if not supplied
+    if not origin:
+        if flight_type == "arrival":
+            if prefix == "UAE": origin = "OMDB"
+            elif prefix == "SIA": origin = "WSSS"
+            elif prefix == "QTR": origin = "QTR"
+            elif prefix == "BAW": origin = "EGLL"
+            else: origin = random.choice(["VIDP", "VOBL", "VOMM", "VOGO"])
+        else:
+            origin = closer_airport
+            
+    if not destination:
+        if flight_type == "departure":
+            if prefix == "UAE": destination = "OMDB"
+            elif prefix == "SIA": destination = "WSSS"
+            elif prefix == "QTR": destination = "QTR"
+            elif prefix == "BAW": destination = "EGLL"
+            else: destination = random.choice(["VIDP", "VOBL", "VOMM", "VOGO"])
+        else:
+            destination = closer_airport
+
+    orig_fullname = airports[origin]["fullname"] if origin in airports else (origin if isinstance(origin, str) else f"En Route ({origin})")
+    orig_city = airports[origin]["city"] if origin in airports else (origin.split(" ")[0] if isinstance(origin, str) else "En Route")
+    orig_iata = airports[origin]["iata"] if origin in airports else (origin.split("(")[1].split(")")[0] if isinstance(origin, str) and "(" in origin else "BOM")
+    
+    dest_fullname = airports[destination]["fullname"] if destination in airports else (destination if isinstance(destination, str) else f"En Route ({destination})")
+    dest_city = airports[destination]["city"] if destination in airports else (destination.split(" ")[0] if isinstance(destination, str) else "En Route")
+    dest_iata = airports[destination]["iata"] if destination in airports else (destination.split("(")[1].split(")")[0] if isinstance(destination, str) and "(" in destination else "BOM")
+    
+    # Generate departure / arrival times
+    random.seed(callsign)
+    dep_hour = random.randint(0, 23)
+    dep_min = random.choice([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55])
+    duration_hours = random.choice([1, 2, 3, 5, 8])
+    duration_mins = random.choice([0, 15, 30, 45])
+    
+    arr_hour = (dep_hour + duration_hours) % 24
+    arr_min = (dep_min + duration_mins) % 60
+    
+    dep_time = f"{dep_hour:02d}:{dep_min:02d}"
+    arr_time = f"{arr_hour:02d}:{arr_min:02d}"
+    
+    # Photographer credit & manufacturer
+    photographers = [
+        "Aravind Krishnan", "Rahul Sharma", "Vivek Patel", "Aniket Singh", "Sanjay Rao",
+        "Priya Das", "Karan Malhotra", "Neha Gupta", "Rohan Joshi", "Rajesh Nair",
+        "Siddharth Shah", "Sameer Deshmukh", "Tanmay Sen", "Vikram Kadam"
+    ]
+    random.seed(reg)
+    photographer = random.choice(photographers)
+    random.seed()
+    
+    manufacturer = "Boeing"
+    if "Airbus" in m_info["name"]:
+        manufacturer = "Airbus"
+    elif "Gulfstream" in m_info["name"]:
+        manufacturer = "Gulfstream"
+    
+    return {
+        "registration": reg,
+        "serial_number": f"MSN {msn}",
+        "age": f"{age} years",
+        "engines": m_info["engines"],
+        "aircraft_fullname": m_info["name"],
+        "photo_url": m_info["photo_url"],
+        "origin_fullname": orig_fullname,
+        "origin_city": orig_city,
+        "origin_iata": orig_iata,
+        "destination_fullname": dest_fullname,
+        "destination_city": dest_city,
+        "destination_iata": dest_iata,
+        "dep_time": dep_time,
+        "arr_time": arr_time,
+        "photographer": photographer,
+        "manufacturer": manufacturer
+    }
+
 def generate_simulated_flights():
     """
     Generates a beautifully structured simulated flight database.
@@ -68,7 +281,6 @@ def generate_simulated_flights():
     now = time.time()
     
     # Templates for simulated flights
-    # status: 'final_approach', 'descending', 'en_route', 'climbing', 'departed', 'on_ground'
     templates = [
         # ARRIVALS TO VABB (Mumbai)
         {
@@ -150,7 +362,7 @@ def generate_simulated_flights():
             "duration": 650, "cycle_offset": 500,
             "type": "departure", "airport": "VABB"
         },
-
+        
         # NAVI MUMBAI (VANM) TEST/VIP FLIGHTS
         {
             "callsign": "GLF6_VIP",
@@ -165,7 +377,7 @@ def generate_simulated_flights():
         },
         {
             "callsign": "AIC_TEST",
-            "model": "C25B",
+            "model": "GLF6",
             "origin": "Navi Mumbai (VANM)",
             "destination": "Pune (VAPO)",
             "start_lat": VANM_COORDS[0], "start_lon": VANM_COORDS[1],
@@ -178,7 +390,7 @@ def generate_simulated_flights():
         # ON GROUND - VABB
         {
             "callsign": "SEJ154",
-            "model": "B737",
+            "model": "B38M",
             "origin": "Mumbai (VABB)",
             "destination": "Goa (VOGO)",
             "lat": 19.091, "lon": 72.862,
@@ -198,7 +410,7 @@ def generate_simulated_flights():
         # ON GROUND - VANM (Navi Mumbai)
         {
             "callsign": "VT-NMA",
-            "model": "BE20",
+            "model": "GLF6",
             "origin": "Mumbai (VABB)",
             "destination": "Navi Mumbai (VANM)",
             "lat": 18.991, "lon": 73.065,
@@ -210,6 +422,7 @@ def generate_simulated_flights():
     flights = []
     for t in templates:
         airline_info = get_airline_info(t["callsign"])
+        meta = get_flight_metadata(t["callsign"], t["model"], t["type"], t["airport"], custom_origin=t.get("origin"), custom_dest=t.get("destination"))
         
         if t["type"] == "on_ground":
             flights.append({
@@ -218,8 +431,8 @@ def generate_simulated_flights():
                 "airline": airline_info["name"],
                 "logo": airline_info["logo"],
                 "model": t["model"],
-                "origin": t["origin"],
-                "destination": t["destination"],
+                "origin": meta["origin_city"],
+                "destination": meta["destination_city"],
                 "lat": t["lat"],
                 "lon": t["lon"],
                 "altitude": 0,
@@ -230,7 +443,8 @@ def generate_simulated_flights():
                 "gate": t["gate"],
                 "type": "on_ground",
                 "airport": t["airport"],
-                "trail": [[t["lon"], t["lat"]]]
+                "trail": [[t["lon"], t["lat"]]],
+                **meta
             })
             continue
             
@@ -285,8 +499,8 @@ def generate_simulated_flights():
             "airline": airline_info["name"],
             "logo": airline_info["logo"],
             "model": t["model"],
-            "origin": t["origin"],
-            "destination": t["destination"],
+            "origin": meta["origin_city"],
+            "destination": meta["destination_city"],
             "lat": round(lat, 5),
             "lon": round(lon, 5),
             "altitude": int(alt),
@@ -297,7 +511,8 @@ def generate_simulated_flights():
             "gate": "",
             "type": t["type"],
             "airport": t["airport"],
-            "trail": trail
+            "trail": trail,
+            **meta
         })
         
     return flights
@@ -354,25 +569,23 @@ def main():
                     flight_type = "arrival" if closer_dist < 40 and alt < 12000 else "departure"
                     status = "En Route"
                 
-                # Define simple origin/dest estimation
-                if flight_type == "arrival":
-                    origin = "En Route"
-                    destination = f"Mumbai ({closer_airport})"
-                elif flight_type == "departure":
-                    origin = f"Mumbai ({closer_airport})"
-                    destination = "En Route"
-                else:
-                    origin = "Local"
-                    destination = f"Mumbai ({closer_airport})"
+                # Model determination
+                ac_model = "A20N" if "IGO" in callsign else "B788" if "AIC" in callsign else "B738"
+                if "VTI" in callsign: ac_model = "A321"
+                elif "UAE" in callsign: ac_model = "B77W"
+                elif "SIA" in callsign: ac_model = "A359"
+                elif "GLF" in callsign: ac_model = "GLF6"
+                
+                meta = get_flight_metadata(callsign, ac_model, flight_type, closer_airport)
                 
                 flights.append({
                     "icao24": icao,
                     "callsign": callsign,
                     "airline": airline_info["name"],
                     "logo": airline_info["logo"],
-                    "model": "A320" if "IGO" in callsign else "B788" if "AIC" in callsign else "B738",
-                    "origin": origin,
-                    "destination": destination,
+                    "model": ac_model,
+                    "origin": meta["origin_city"],
+                    "destination": meta["destination_city"],
                     "lat": lat,
                     "lon": lon,
                     "altitude": alt,
@@ -383,7 +596,8 @@ def main():
                     "gate": "Gate A" if on_ground else "",
                     "type": flight_type,
                     "airport": closer_airport,
-                    "trail": [[lon, lat]]  # Simple trail for live vectors
+                    "trail": [[lon, lat]],  # Simple trail for live vectors
+                    **meta
                 })
     except Exception as e:
         print(f"⚠️ Failed to connect to OpenSky Network API ({e}). Falling back to simulated feed.")

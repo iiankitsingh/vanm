@@ -108,27 +108,70 @@
                         </div>
                         
                         <div class="detail-body">
+                            <!-- JetPhotos styled photo card -->
+                            <div class="jetphotos-card" id="detail-photo-card">
+                                <img src="" alt="Aircraft Photo" id="detail-photo-img">
+                                <div class="jetphotos-watermark">
+                                    <span class="jp-logo">JetPhotos</span>
+                                    <span class="jp-credit" id="detail-photo-credit">Photo © Aravind Krishnan</span>
+                                </div>
+                            </div>
+
                             <div class="airline-block">
                                 <span class="airline-logo" id="detail-logo">🇮🇳</span>
                                 <div class="airline-details">
                                     <h3 id="detail-airline">Air India</h3>
-                                    <p id="detail-model-label">Boeing 787-8 Dreamliner (<span id="detail-model">B788</span>)</p>
+                                    <p id="detail-model-label"><span id="detail-aircraft-fullname">Boeing 787-8 Dreamliner</span> (<span id="detail-model">B788</span>)</p>
                                 </div>
                             </div>
 
+                            <!-- Route details & full airport names -->
                             <div class="route-block">
                                 <div class="route-node">
-                                    <span class="node-label">ORIGIN</span>
-                                    <strong id="detail-origin">VABB</strong>
+                                    <span class="node-label" id="detail-origin-full">Chhatrapati Shivaji Maharaj Intl</span>
+                                    <strong id="detail-origin">BOM</strong>
+                                    <span class="node-time" id="detail-dep-time">06:20</span>
                                 </div>
                                 <div class="route-arrow">✈</div>
                                 <div class="route-node">
-                                    <span class="node-label">DESTINATION</span>
-                                    <strong id="detail-destination">EGLL</strong>
+                                    <span class="node-label" id="detail-destination-full">London Heathrow</span>
+                                    <strong id="detail-destination">LHR</strong>
+                                    <span class="node-time" id="detail-arr-time">14:50</span>
+                                </div>
+                            </div>
+
+                            <!-- Route Progress Bar -->
+                            <div class="progress-container">
+                                <div class="progress-track">
+                                    <div class="progress-fill" id="detail-progress-fill" style="width: 45%;"></div>
+                                    <div class="progress-plane" id="detail-progress-plane" style="left: 45%;">✈</div>
+                                </div>
+                                <div class="progress-labels">
+                                    <span id="detail-progress-percent">En Route - 45% complete</span>
                                 </div>
                             </div>
                             
                             <div class="telemetry-grid">
+                                <div class="tel-item">
+                                    <span class="tel-label">Registration</span>
+                                    <span class="tel-value" id="detail-registration">VT-ANP</span>
+                                </div>
+                                <div class="tel-item">
+                                    <span class="tel-label">Serial Number (MSN)</span>
+                                    <span class="tel-value" id="detail-serial">MSN 36224</span>
+                                </div>
+                                <div class="tel-item">
+                                    <span class="tel-label">Aircraft Age</span>
+                                    <span class="tel-value" id="detail-age">8.5 years</span>
+                                </div>
+                                <div class="tel-item">
+                                    <span class="tel-label">Manufacturer</span>
+                                    <span class="tel-value" id="detail-manufacturer">Boeing</span>
+                                </div>
+                                <div class="tel-item">
+                                    <span class="tel-label">Engines</span>
+                                    <span class="tel-value" id="detail-engines">2x RR Trent 1000</span>
+                                </div>
                                 <div class="tel-item">
                                     <span class="tel-label">Altitude</span>
                                     <span class="tel-value" id="detail-altitude">12,000 ft</span>
@@ -146,12 +189,8 @@
                                     <span class="tel-value" id="detail-vrate">+1,200 fpm</span>
                                 </div>
                                 <div class="tel-item">
-                                    <span class="tel-label">Latitude</span>
-                                    <span class="tel-value" id="detail-lat">19.089</span>
-                                </div>
-                                <div class="tel-item">
-                                    <span class="tel-label">Longitude</span>
-                                    <span class="tel-value" id="detail-lon">72.865</span>
+                                    <span class="tel-label">Coordinates</span>
+                                    <span class="tel-value" style="font-size: 11px;"><span id="detail-lat">19.089</span>, <span id="detail-lon">72.865</span></span>
                                 </div>
                             </div>
                             
