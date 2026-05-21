@@ -1,4 +1,4 @@
-name: Update NOTAM Data
+name: Update Flight Radar Data
 
 on:
   schedule:
@@ -9,7 +9,7 @@ permissions:
   contents: write # Required to push commits to the repository
 
 jobs:
-  update-notams:
+  update-flights:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,18 +27,18 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run NOTAM Updater
-        run: python update_notams.py
+      - name: Run Flight Radar Updater
+        run: python update_flights.py
 
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/notams.json docs/aircraft.json
-          # Commit only if there are modifications in the JSON files
+          git add docs/flights.json
+          # Commit only if there are modifications in the flights.json file
           if git diff --staged --quiet; then
-            echo "No changes in NOTAM or aircraft data. Skipping commit."
+            echo "No changes in flight data. Skipping commit."
           else
-            git commit -m "chore: auto-update NOTAM & aircraft data [skip ci]"
+            git commit -m "chore: auto-update live flight data [skip ci]"
             git push origin main
           fi

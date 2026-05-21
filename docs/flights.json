@@ -1,0 +1,302 @@
+[
+  {
+    "icao24": "801663",
+    "callsign": "IGO21V",
+    "airline": "IndiGo",
+    "logo": "\ud83d\udd35",
+    "model": "A320",
+    "origin": "Mumbai (VABB)",
+    "destination": "En Route",
+    "lat": 19.0874,
+    "lon": 72.7244,
+    "altitude": 5175,
+    "speed": 267,
+    "heading": 275,
+    "vertical_rate": 3328,
+    "status": "Climbing",
+    "gate": "",
+    "type": "departure",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.7244,
+        19.0874
+      ]
+    ]
+  },
+  {
+    "icao24": "80174b",
+    "callsign": "IGO75P",
+    "airline": "IndiGo",
+    "logo": "\ud83d\udd35",
+    "model": "A320",
+    "origin": "En Route",
+    "destination": "Mumbai (VANM)",
+    "lat": 18.9888,
+    "lon": 73.1013,
+    "altitude": 8125,
+    "speed": 240,
+    "heading": 67,
+    "vertical_rate": -1279,
+    "status": "Final Approach",
+    "gate": "",
+    "type": "arrival",
+    "airport": "VANM",
+    "trail": [
+      [
+        73.1013,
+        18.9888
+      ]
+    ]
+  },
+  {
+    "icao24": "801742",
+    "callsign": "IGO5094",
+    "airline": "IndiGo",
+    "logo": "\ud83d\udd35",
+    "model": "A320",
+    "origin": "En Route",
+    "destination": "Mumbai (VANM)",
+    "lat": 19.0911,
+    "lon": 73.0408,
+    "altitude": 3075,
+    "speed": 176,
+    "heading": 268,
+    "vertical_rate": -832,
+    "status": "Final Approach",
+    "gate": "",
+    "type": "arrival",
+    "airport": "VANM",
+    "trail": [
+      [
+        73.0408,
+        19.0911
+      ]
+    ]
+  },
+  {
+    "icao24": "8015d9",
+    "callsign": "IGO6619",
+    "airline": "IndiGo",
+    "logo": "\ud83d\udd35",
+    "model": "A320",
+    "origin": "Local",
+    "destination": "Mumbai (VABB)",
+    "lat": 19.0903,
+    "lon": 72.8585,
+    "altitude": 0,
+    "speed": 9,
+    "heading": 64,
+    "vertical_rate": 0,
+    "status": "Landed",
+    "gate": "Gate A",
+    "type": "on_ground",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.8585,
+        19.0903
+      ]
+    ]
+  },
+  {
+    "icao24": "801819",
+    "callsign": "IGO6225",
+    "airline": "IndiGo",
+    "logo": "\ud83d\udd35",
+    "model": "A320",
+    "origin": "En Route",
+    "destination": "Mumbai (VABB)",
+    "lat": 19.0898,
+    "lon": 72.9413,
+    "altitude": 1350,
+    "speed": 137,
+    "heading": 269,
+    "vertical_rate": -639,
+    "status": "Final Approach",
+    "gate": "",
+    "type": "arrival",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.9413,
+        19.0898
+      ]
+    ]
+  },
+  {
+    "icao24": "8017ee",
+    "callsign": "IGO1060",
+    "airline": "IndiGo",
+    "logo": "\ud83d\udd35",
+    "model": "A320",
+    "origin": "Local",
+    "destination": "Mumbai (VABB)",
+    "lat": 19.0913,
+    "lon": 72.8686,
+    "altitude": 0,
+    "speed": 10,
+    "heading": 90,
+    "vertical_rate": 0,
+    "status": "Landed",
+    "gate": "Gate A",
+    "type": "on_ground",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.8686,
+        19.0913
+      ]
+    ]
+  },
+  {
+    "icao24": "040105",
+    "callsign": "ETH640",
+    "airline": "Private/Other",
+    "logo": "\u2708\ufe0f",
+    "model": "B738",
+    "origin": "En Route",
+    "destination": "Mumbai (VANM)",
+    "lat": 19.093,
+    "lon": 73.1597,
+    "altitude": 4875,
+    "speed": 187,
+    "heading": 271,
+    "vertical_rate": -767,
+    "status": "Descending",
+    "gate": "",
+    "type": "arrival",
+    "airport": "VANM",
+    "trail": [
+      [
+        73.1597,
+        19.093
+      ]
+    ]
+  },
+  {
+    "icao24": "49d1cd",
+    "callsign": "SEJ878",
+    "airline": "SpiceJet",
+    "logo": "\ud83d\udd34",
+    "model": "B738",
+    "origin": "En Route",
+    "destination": "Mumbai (VABB)",
+    "lat": 19.2457,
+    "lon": 72.5993,
+    "altitude": 11000,
+    "speed": 336,
+    "heading": 165,
+    "vertical_rate": 0,
+    "status": "En Route",
+    "gate": "",
+    "type": "arrival",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.5993,
+        19.2457
+      ]
+    ]
+  },
+  {
+    "icao24": "4b1885",
+    "callsign": "SWR155",
+    "airline": "Private/Other",
+    "logo": "\u2708\ufe0f",
+    "model": "B738",
+    "origin": "Mumbai (VABB)",
+    "destination": "En Route",
+    "lat": 19.2884,
+    "lon": 72.7929,
+    "altitude": 5200,
+    "speed": 284,
+    "heading": 5,
+    "vertical_rate": 2496,
+    "status": "Climbing",
+    "gate": "",
+    "type": "departure",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.7929,
+        19.2884
+      ]
+    ]
+  },
+  {
+    "icao24": "3c64fa",
+    "callsign": "DLH756",
+    "airline": "Private/Other",
+    "logo": "\u2708\ufe0f",
+    "model": "B738",
+    "origin": "Local",
+    "destination": "Mumbai (VABB)",
+    "lat": 19.0892,
+    "lon": 72.8529,
+    "altitude": 0,
+    "speed": 11,
+    "heading": 298,
+    "vertical_rate": 0,
+    "status": "Landed",
+    "gate": "Gate A",
+    "type": "on_ground",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.8529,
+        19.0892
+      ]
+    ]
+  },
+  {
+    "icao24": "800b82",
+    "callsign": "SEJ1476",
+    "airline": "SpiceJet",
+    "logo": "\ud83d\udd34",
+    "model": "B738",
+    "origin": "Local",
+    "destination": "Mumbai (VABB)",
+    "lat": 19.0903,
+    "lon": 72.8573,
+    "altitude": 0,
+    "speed": 18,
+    "heading": 90,
+    "vertical_rate": 0,
+    "status": "Landed",
+    "gate": "Gate A",
+    "type": "on_ground",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.8573,
+        19.0903
+      ]
+    ]
+  },
+  {
+    "icao24": "04c14b",
+    "callsign": "KQA202",
+    "airline": "Private/Other",
+    "logo": "\u2708\ufe0f",
+    "model": "B738",
+    "origin": "En Route",
+    "destination": "Mumbai (VABB)",
+    "lat": 18.9158,
+    "lon": 72.8606,
+    "altitude": 12675,
+    "speed": 277,
+    "heading": 87,
+    "vertical_rate": -1216,
+    "status": "Descending",
+    "gate": "",
+    "type": "arrival",
+    "airport": "VABB",
+    "trail": [
+      [
+        72.8606,
+        18.9158
+      ]
+    ]
+  }
+]

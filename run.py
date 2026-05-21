@@ -1,6 +1,8 @@
 import os
 import sys
 import subprocess
+import http.server
+import socketserver
 
 def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -8,32 +10,29 @@ def main():
     # Path to virtual env python interpreter
     venv_python = os.path.join(current_dir, ".venv", "bin", "python")
     
-    if not os.path.exists(venv_python):
-        print(f"Virtual environment not found at {venv_python}.")
-        print("Please set up the virtual environment by running:")
-        print("  python3 -m venv .venv")
-        print("  .venv/bin/pip install -r requirements.txt")
-        sys.exit(1)
-        
-    print(f"🚀 Launching AeroParse Server using: {venv_python}")
-    print("✨ Serving the Interactive Map Playground at: http://localhost:8000")
-    print("✨ Serving the GraphQL Explorer at: http://localhost:8000/graphql")
+    # 1. Run flight updater first
+    print("📡 Updating live flight data...")
+    if os.path.exists(venv_python):
+        subprocess.run([venv_python, "update_flights.py"])
+    else:
+        subprocess.run([sys.executable, "update_flights.py"])
+
+    # 2. Serve docs folder on port 8080
+    port = 8080
+    docs_dir = os.path.join(current_dir, "docs")
+    os.chdir(docs_dir)
+
+    Handler = http.server.SimpleHTTPRequestHandler
+    
+    print(f"\n🚀 Launching Flight Tracker Dashboard Server...")
+    print(f"✨ Serving the Radar Map & FIDS Board at: http://localhost:{port}")
     print("Press CTRL+C to stop the server.\n")
-    
-    cmd = [
-        venv_python, 
-        "-m", 
-        "uvicorn", 
-        "server.app:app", 
-        "--host", "127.0.0.1", 
-        "--port", "8000", 
-        "--reload"
-    ]
-    
+
     try:
-        subprocess.run(cmd, check=True)
+        with socketserver.TCPServer(("", port), Handler) as httpd:
+            httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\nStopping AeroParse server.")
+        print("\nStopping Flight Tracker server.")
         sys.exit(0)
     except Exception as e:
         print(f"Error starting server: {e}", file=sys.stderr)

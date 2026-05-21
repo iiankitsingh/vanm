@@ -1,5 +1,1 @@
-pydantic>=2.0.0
-fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
-strawberry-graphql[fastapi]>=0.190.0
-pytest>=7.0.0
+# Standard library urllib.request is used for API requests. No third-party dependencies required.
