@@ -501,19 +501,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Seedable PRNG & Metadata Databases
     const AIRLINE_MAP = {
-        "AIC": { name: "Air India", logo: "🇮🇳" },
-        "IGO": { name: "IndiGo", logo: "🔵" },
-        "VTI": { name: "Vistara", logo: "🟣" },
-        "SEJ": { name: "SpiceJet", logo: "🔴" },
-        "AKJ": { name: "Akasa Air", logo: "🟠" },
-        "UAE": { name: "Emirates", logo: "🇦🇪" },
-        "SIA": { name: "Singapore Airlines", logo: "🇸🇬" },
-        "QTR": { name: "Qatar Airways", logo: "🇶🇦" },
-        "BAW": { name: "British Airways", logo: "🇬🇧" },
-        "LHA": { name: "Lufthansa", logo: "🇩🇪" },
-        "ETD": { name: "Etihad Airways", logo: "🇦🇪" },
-        "JAI": { name: "Jet Airways", logo: "🇮🇳" }
+        "AIC": {
+            name: "Air India",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Air_India_logo.svg/240px-Air_India_logo.svg.png"
+        },
+        "IGO": {
+            name: "IndiGo",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/IndiGo_logo.svg/240px-IndiGo_logo.svg.png"
+        },
+        "VTI": {
+            name: "Vistara",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Vistara_Logo.svg/240px-Vistara_Logo.svg.png"
+        },
+        "SEJ": {
+            name: "SpiceJet",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/SpiceJet_Logo.svg/240px-SpiceJet_Logo.svg.png"
+        },
+        "AKJ": {
+            name: "Akasa Air",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Akasa_Air_logo.svg/240px-Akasa_Air_logo.svg.png"
+        },
+        "UAE": {
+            name: "Emirates",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Emirates_logo.svg/240px-Emirates_logo.svg.png"
+        },
+        "SIA": {
+            name: "Singapore Airlines",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Singapore_Airlines_Logo_2.svg/240px-Singapore_Airlines_Logo_2.svg.png"
+        },
+        "QTR": {
+            name: "Qatar Airways",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Qatar_Airways_Logo.svg/240px-Qatar_Airways_Logo.svg.png"
+        },
+        "BAW": {
+            name: "British Airways",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/British_Airways_Logo.svg/240px-British_Airways_Logo.svg.png"
+        },
+        "LHA": {
+            name: "Lufthansa",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Lufthansa_Logo_2018.svg/240px-Lufthansa_Logo_2018.svg.png"
+        },
+        "ETD": {
+            name: "Etihad Airways",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Etihad_Airways_Logo.svg/240px-Etihad_Airways_Logo.svg.png"
+        },
+        "JAI": {
+            name: "Jet Airways",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Jet_Airways_Logo.svg/240px-Jet_Airways_Logo.svg.png"
+        },
+        "GOI": {
+            name: "Go First",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Go_First_logo.svg/240px-Go_First_logo.svg.png"
+        },
+        "AXB": {
+            name: "Air Arabia",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Air_Arabia_Logo.svg/240px-Air_Arabia_Logo.svg.png"
+        },
+        "FDB": {
+            name: "flydubai",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Flydubai_logo.svg/240px-Flydubai_logo.svg.png"
+        },
+        "KLM": {
+            name: "KLM",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/KLM_logo.svg/240px-KLM_logo.svg.png"
+        },
+        "AFR": {
+            name: "Air France",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Air_France_Logo.svg/240px-Air_France_Logo.svg.png"
+        },
+        "THY": {
+            name: "Turkish Airlines",
+            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Turkish_Airlines_logo.svg/240px-Turkish_Airlines_logo.svg.png"
+        }
     };
+    // Default fallback logo for unknown airlines
+    const FALLBACK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Airplane_silhouette.svg/120px-Airplane_silhouette.svg.png";
 
     const MODEL_DATA = {
         "A20N": {
@@ -1292,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.arrivalsTableBody.innerHTML = arrivals.map(f => `
                 <tr class="${state.selectedFlightId === f.icao24 ? 'selected-row' : ''}">
                     <td><strong>${f.callsign}</strong></td>
-                    <td>${f.logo} ${f.airline}</td>
+                    <td><img src="${f.logo || FALLBACK_LOGO}" alt="${f.airline}" class="fids-airline-logo" onerror="this.style.display='none'"> ${f.airline}</td>
                     <td>${f.origin}</td>
                     <td>${formatAltitude(f.altitude)}</td>
                     <td>${formatSpeed(f.speed)}</td>
@@ -1310,7 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.departuresTableBody.innerHTML = departures.map(f => `
                 <tr class="${state.selectedFlightId === f.icao24 ? 'selected-row' : ''}">
                     <td><strong>${f.callsign}</strong></td>
-                    <td>${f.logo} ${f.airline}</td>
+                    <td><img src="${f.logo || FALLBACK_LOGO}" alt="${f.airline}" class="fids-airline-logo" onerror="this.style.display='none'"> ${f.airline}</td>
                     <td>${f.destination}</td>
                     <td>${formatAltitude(f.altitude)}</td>
                     <td>${formatSpeed(f.speed)}</td>
@@ -1328,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.groundTableBody.innerHTML = ground.map(f => `
                 <tr class="${state.selectedFlightId === f.icao24 ? 'selected-row' : ''}">
                     <td><strong>${f.callsign}</strong></td>
-                    <td>${f.logo} ${f.airline}</td>
+                    <td><img src="${f.logo || FALLBACK_LOGO}" alt="${f.airline}" class="fids-airline-logo" onerror="this.style.display='none'"> ${f.airline}</td>
                     <td>${f.model}</td>
                     <td>${f.destination === 'En Route' ? 'Scheduled' : f.destination}</td>
                     <td><span style="font-family: 'Fira Code', monospace; color: var(--accent-cyan)">${f.gate || 'APRON'}</span></td>
@@ -1475,7 +1537,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTelemetryPanel(flight) {
         // Basic Info
         elements.detailCallsign.textContent = flight.callsign;
-        elements.detailLogo.textContent = flight.logo;
+        // Render real airline logo image
+        const logoUrl = flight.logo || FALLBACK_LOGO;
+        elements.detailLogo.innerHTML = `<img src="${logoUrl}" alt="${flight.airline}" class="airline-logo-img" onerror="this.src='${FALLBACK_LOGO}'">`;
         elements.detailAirline.textContent = flight.airline;
         elements.detailModel.textContent = flight.model;
         
