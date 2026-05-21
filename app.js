@@ -98,8 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
         groundTableBody: document.querySelector('#ground-table tbody')
     };
 
-    };
-
     // ==========================================================================
     // Web Audio API Synthesizer Sound Generator
     // ==========================================================================
