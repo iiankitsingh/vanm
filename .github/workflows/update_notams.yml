@@ -1,0 +1,44 @@
+name: Update NOTAM Data
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Run hourly
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write # Required to push commits to the repository
+
+jobs:
+  update-notams:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run NOTAM Updater
+        run: python update_notams.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/notams.json docs/aircraft.json
+          # Commit only if there are modifications in the JSON files
+          if git diff --staged --quiet; then
+            echo "No changes in NOTAM or aircraft data. Skipping commit."
+          else
+            git commit -m "chore: auto-update NOTAM & aircraft data [skip ci]"
+            git push origin main
+          fi

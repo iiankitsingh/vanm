@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroParse | Navi Mumbai International Airport (VANM) NOTAM Dashboard</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Map Visualizations -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Dashboard Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-icon">✈</span>
+                <div class="brand-details">
+                    <h1>AeroParse</h1>
+                    <p>VANM NOTAM System</p>
+                </div>
+            </div>
+            
+            <nav class="navigation">
+                <button class="nav-btn active" data-tab="tab-dashboard">
+                    <span class="btn-icon">🗺️</span> Airspace map
+                </button>
+                <button class="nav-btn" data-tab="tab-specs">
+                    <span class="btn-icon">📋</span> Aircraft specs
+                </button>
+                <button class="nav-btn" data-tab="tab-api">
+                    <span class="btn-icon">⚡</span> Integration API
+                </button>
+            </nav>
+            
+            <div class="system-status">
+                <div class="status-indicator online"></div>
+                <div class="status-text">
+                    <p>Static feed active</p>
+                    <span id="last-updated-text">Updating...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-title">
+                    <h2>Navi Mumbai Airport Airspace Dashboard</h2>
+                    <p>Interactive spatial mapping and plain English parsing of flight notices (NOTAMs) for ICAO: VANM / VABB.</p>
+                </div>
+                <div class="airport-badge">
+                    <span class="badge-icao">VANM</span>
+                    <span class="badge-label">Navi Mumbai, IN</span>
+                </div>
+            </header>
+
+            <!-- Tab 1: Dashboard Panel -->
+            <div id="tab-dashboard" class="tab-panel active">
+                <div class="grid-container">
+                    <!-- Left: Notices List -->
+                    <section class="panel notices-panel glassmorphism">
+                        <div class="panel-header">
+                            <h3>Active flight notices</h3>
+                            <div class="filter-bar">
+                                <button class="filter-btn active" data-filter="all">All (<span id="count-all">0</span>)</button>
+                                <button class="filter-btn" data-filter="high">High (<span id="count-high">0</span>)</button>
+                                <button class="filter-btn" data-filter="medium">Medium (<span id="count-medium">0</span>)</button>
+                            </div>
+                        </div>
+                        
+                        <div class="search-box">
+                            <input type="text" id="notam-search-input" placeholder="Search notices by keyword or ICAO...">
+                        </div>
+                        
+                        <div class="notams-list" id="notams-list-container">
+                            <!-- Injected dynamically -->
+                            <div class="loader">Loading notices...</div>
+                        </div>
+                    </section>
+
+                    <!-- Right: Map Visualization & Details Card -->
+                    <div class="visualizer-col">
+                        <!-- Interactive Leaflet Map -->
+                        <section class="panel map-panel glassmorphism">
+                            <div id="map"></div>
+                        </section>
+
+                        <!-- Active Detail Viewer -->
+                        <section class="panel detail-panel glassmorphism hidden" id="detail-viewer">
+                            <div class="detail-header">
+                                <div class="detail-priority">
+                                    <span class="badge" id="detail-priority-badge">HIGH</span>
+                                    <span class="detail-id" id="detail-notam-id">A0757/26</span>
+                                </div>
+                                <div class="detail-locations">
+                                    <strong>Airport/FIR:</strong> <span id="detail-icao">-</span>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-body">
+                                <div class="translation-block">
+                                    <h4>Plain English Translation</h4>
+                                    <p id="detail-plain-text">Runway 08/26 Closed due to work in progress.</p>
+                                </div>
+                                
+                                <div class="times-grid">
+                                    <div class="time-item">
+                                        <strong>Starts (UTC)</strong>
+                                        <span id="detail-time-from">-</span>
+                                    </div>
+                                    <div class="time-item">
+                                        <strong>Ends (UTC)</strong>
+                                        <span id="detail-time-to">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="raw-block">
+                                    <h4>Raw NOTAM Text</h4>
+                                    <pre><code id="detail-raw-text">A0757/26 NOTAMN...</code></pre>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Aircraft Specs Panel -->
+            <div id="tab-specs" class="tab-panel">
+                <section class="panel specs-panel glassmorphism">
+                    <div class="specs-intro">
+                        <h3>Aircraft Limitations Database</h3>
+                        <p>Query certified runway requirements, operational temperature limits, and climb rates from Type Certificate Data Sheets (TCDS).</p>
+                    </div>
+                    
+                    <div class="search-form">
+                        <input type="text" id="specs-search-input" placeholder="Type ICAO Code (e.g. B738, A320, C172, GLF6)...">
+                        <button id="btn-search-specs" class="btn primary-btn">Search Performance Specs</button>
+                    </div>
+                    
+                    <div class="specs-grid hidden" id="specs-result-grid">
+                        <div class="spec-card">
+                            <span class="spec-value" id="val-alt">-</span>
+                            <span class="spec-label">Max Altitude (FT)</span>
+                        </div>
+                        <div class="spec-card">
+                            <span class="spec-value" id="val-takeoff">-</span>
+                            <span class="spec-label">Min Takeoff Length (M)</span>
+                        </div>
+                        <div class="spec-card">
+                            <span class="spec-value" id="val-landing">-</span>
+                            <span class="spec-label">Min Landing Length (M)</span>
+                        </div>
+                        <div class="spec-card">
+                            <span class="spec-value" id="val-climb">-</span>
+                            <span class="spec-label">Climb Limit Rate (FPM)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="specs-details hidden" id="specs-result-details">
+                        <div class="detail-row">
+                            <strong>ICAO Model Code:</strong>
+                            <span id="val-model">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Engine Configuration:</strong>
+                            <span id="val-engine">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Weight Class/Variant:</strong>
+                            <span id="val-weight">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Operation Temp Restriction:</strong>
+                            <span id="val-temp">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="specs-info-note">
+                        <p>💡 Try typing <strong>B738</strong> for Boeing 737-800, <strong>A320</strong> for Airbus A320, <strong>C172</strong> for Cessna 172, or <strong>GLF6</strong> for Gulfstream G650.</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Tab 3: API Integration Guide -->
+            <div id="tab-api" class="tab-panel">
+                <section class="panel api-panel glassmorphism">
+                    <h3>Integration API Documentation</h3>
+                    <p>Integrate our parsed Navi Mumbai airspace JSON dataset directly into your Electronic Flight Bag (EFB), flight simulators, or local databases.</p>
+                    
+                    <div class="api-endpoint">
+                        <span class="method">GET</span>
+                        <code class="url" id="api-url-path">/notams.json</code>
+                        <span class="api-desc">Returns a compiled list of active and parsed NOTAMs for the Mumbai region.</span>
+                    </div>
+                    
+                    <div class="code-example">
+                        <h4>Example JavaScript Request</h4>
+                        <pre><code>fetch('notams.json')
+  .then(res => res.json())
+  .then(notams => {
+    console.log(`Found ${notams.length} active flight notices.`);
+    notams.forEach(item => {
+      console.log(`[${item.priority}] ${item.id}: ${item.plain_text}`);
+    });
+  });</code></pre>
+                    </div>
+                    
+                    <div class="code-example">
+                        <h4>Example JSON Schema Structure</h4>
+                        <pre><code>[
+  {
+    "id": "A0757/26",
+    "q_code": "QMRLC",
+    "raw_text": "Q) VABF/QMRLC...",
+    "location": "VANM",
+    "valid_from": "2026-05-22T04:30:00Z",
+    "valid_to": "2026-05-23T12:30:00Z",
+    "plain_text": "Runway 08/26 Closed due to work in progress...",
+    "affected_aerodromes": ["VANM"],
+    "priority": "HIGH",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[73.0617, 18.9919], ...]]
+    }
+  }
+]</code></pre>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Dashboard Core Script -->
+    <script src="app.js"></script>
+</body>
+</html>

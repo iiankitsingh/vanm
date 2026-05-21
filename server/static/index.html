@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroParse | Interactive NOTAM & Flight Restriction Playground</title>
+    
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">✈</div>
+                <div class="brand-text">
+                    <h1>AeroParse</h1>
+                    <span>NOTAM Engine v1.0</span>
+                </div>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#playground" class="nav-item active">
+                    <span class="icon">🕹</span> Playground
+                </a>
+                <a href="#graphql" class="nav-item">
+                    <span class="icon">⚡</span> GraphQL API
+                </a>
+                <a href="#aircraft" class="nav-item">
+                    <span class="icon">✈</span> Aircraft database
+                </a>
+            </nav>
+            
+            <div class="connection-status">
+                <div class="status-indicator online"></div>
+                <span class="status-text">Server connected</span>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <h2>NOTAM Parser Playground</h2>
+                <p>Decipher aircraft notices, visualize flight restrictions, and query the spatial graph instantly.</p>
+            </header>
+
+            <!-- Playground Section -->
+            <section id="playground-section" class="section-content active">
+                <div class="grid-layout">
+                    <!-- Left: Control Panel & Parser Output -->
+                    <div class="panel control-panel">
+                        <div class="card glassmorphism">
+                            <div class="card-header">
+                                <h3>Input raw NOTAM</h3>
+                                <div class="presets-container">
+                                    <label for="notam-presets">Load Preset:</label>
+                                    <select id="notam-presets">
+                                        <option value="">-- Choose a Preset --</option>
+                                        <option value="icao-rwy">ICAO Runway Closure (KJFK)</option>
+                                        <option value="faa-tfr">FAA Security TFR (New York)</option>
+                                        <option value="faa-ad">FAA Airport Closure (DCA)</option>
+                                        <option value="icao-tfr-radial">ICAO Radial Restriction (KEWR)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body">
+                                <textarea id="notam-input" placeholder="Paste your raw NOTAM text here (e.g. Q) KZNY/QMRLC... or !DCA 05/123...)"></textarea>
+                                <div class="action-buttons">
+                                    <button id="btn-parse" class="btn primary-btn">Parse & Map ✈</button>
+                                    <button id="btn-clear" class="btn secondary-btn">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parser Result Tabs -->
+                        <div class="card result-card glassmorphism">
+                            <div class="tabs-header">
+                                <button class="tab-btn active" data-tab="tab-translation">Plain English</button>
+                                <button class="tab-btn" data-tab="tab-json">Structured JSON</button>
+                                <button class="tab-btn" data-tab="tab-meta">Metadata</button>
+                            </div>
+                            
+                            <div class="tab-content active" id="tab-translation">
+                                <div class="translation-wrapper">
+                                    <div class="translation-header">
+                                        <span class="badge" id="notam-priority">Priority</span>
+                                        <span class="badge" id="notam-loc-badge">Location</span>
+                                    </div>
+                                    <p id="translation-output" class="placeholder-text">Parsed translation will appear here...</p>
+                                    <div class="dates-output">
+                                        <div><strong>Starts (UTC):</strong> <span id="time-from">-</span></div>
+                                        <div><strong>Ends (UTC):</strong> <span id="time-to">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-content" id="tab-json">
+                                <pre><code id="json-output" class="language-json">{ "status": "Waiting for input..." }</code></pre>
+                            </div>
+                            
+                            <div class="tab-content" id="tab-meta">
+                                <div class="meta-grid">
+                                    <div class="meta-item">
+                                        <span class="meta-label">ID:</span>
+                                        <span class="meta-val" id="meta-id">-</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Q-Code:</span>
+                                        <span class="meta-val" id="meta-qcode">-</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Aerodromes:</span>
+                                        <span class="meta-val" id="meta-aerodromes">-</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Geometry:</span>
+                                        <span class="meta-val" id="meta-geom">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Spatial Visualization Map -->
+                    <div class="panel map-panel">
+                        <div class="card map-card glassmorphism">
+                            <div class="card-header">
+                                <h3>Flight Restriction Map</h3>
+                                <span class="map-controls-hint">Zoom/pan to explore active zones</span>
+                            </div>
+                            <div class="card-body map-body">
+                                <div id="map"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GraphQL Documentation Section -->
+            <section id="graphql-section" class="section-content">
+                <div class="card glassmorphism graphql-card">
+                    <div class="card-header">
+                        <h3>GraphQL API Endpoint</h3>
+                        <span class="endpoint-badge">/graphql</span>
+                    </div>
+                    <div class="card-body">
+                        <p>AeroParse exposes a standard Strawberry GraphQL interface at <code>/graphql</code>. You can copy these queries and run them in any GraphiQL playground.</p>
+                        
+                        <div class="code-example-block">
+                            <h4>1. Query Active NOTAMs by Coordinates & Radius (NM)</h4>
+                            <pre><code>query {
+  notams(lat: 40.6397, lon: -73.7789, radiusNM: 10.0) {
+    id
+    location
+    priority
+    plainText
+    validFrom
+    validTo
+    geometry {
+      type
+      coordinatesJson
+    }
+  }
+}</code></pre>
+                        </div>
+
+                        <div class="code-example-block">
+                            <h4>2. Real-time Subscription for New NOTAM Ingests</h4>
+                            <pre><code>subscription {
+  notamAdded {
+    id
+    location
+    plainText
+    priority
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aircraft Specs Section -->
+            <section id="aircraft-section" class="section-content">
+                <div class="card glassmorphism">
+                    <div class="card-header">
+                        <h3>Aircraft Limitations Database</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Query performance limits, certified ceiling altitudes, and runway requirements extracted from Type Certificate Data Sheets (TCDS).</p>
+                        <div class="search-box">
+                            <input type="text" id="aircraft-search-input" placeholder="Type ICAO Code (e.g. C172, B738, A320, GLF6)...">
+                            <button id="btn-search-aircraft" class="btn primary-btn">Search specs</button>
+                        </div>
+                        
+                        <div id="aircraft-result-panel" class="aircraft-result-panel hidden">
+                            <div class="specs-grid">
+                                <div class="spec-card">
+                                    <div class="spec-num" id="spec-alt">-</div>
+                                    <div class="spec-label">Max Certified Altitude (FT)</div>
+                                </div>
+                                <div class="spec-card">
+                                    <div class="spec-num" id="spec-takeoff">-</div>
+                                    <div class="spec-label">Runway Takeoff Length (M)</div>
+                                </div>
+                                <div class="spec-card">
+                                    <div class="spec-num" id="spec-landing">-</div>
+                                    <div class="spec-label">Runway Landing Length (M)</div>
+                                </div>
+                                <div class="spec-card">
+                                    <div class="spec-num" id="spec-climb">-</div>
+                                    <div class="spec-label">Climb Limit Rate (FPM)</div>
+                                </div>
+                            </div>
+                            <div class="specs-details">
+                                <p><strong>Engine model:</strong> <span id="spec-engine">-</span></p>
+                                <p><strong>Weight Class / MTOW:</strong> <span id="spec-weight">-</span></p>
+                                <p><strong>Operating Temperature Limit:</strong> <span id="spec-temp">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Leaflet Map JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
