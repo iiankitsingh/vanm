@@ -49,9 +49,24 @@ def fetch_live_flights():
     Attempts to fetch live state vectors from OpenSky Network API.
     """
     url = f"https://opensky-network.org/api/states/all?lamin={LAMIN}&lomin={LOMIN}&lamax={LAMAX}&lomax={LOMAX}"
+    
+    # Check for credentials in environment variables
+    username = os.environ.get("OPENSKY_USERNAME")
+    password = os.environ.get("OPENSKY_PASSWORD")
+    
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     }
+    
+    if username and password:
+        import base64
+        auth_str = f"{username}:{password}"
+        auth_bytes = auth_str.encode("utf-8")
+        auth_b64 = base64.b64encode(auth_bytes).decode("utf-8")
+        headers["Authorization"] = f"Basic {auth_b64}"
+        print("🔐 Using authenticated OpenSky API connection...")
+    else:
+        print("🔓 Using anonymous OpenSky API connection...")
     
     req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=10) as response:
