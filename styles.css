@@ -418,12 +418,12 @@ h1, h2, h3, h4, h5, h6 {
 #map {
     height: 100%;
     width: 100%;
-    background-color: #091525;
+    background-color: #e5e0d8;
 }
 
-/* Brighten the map tiles slightly */
+/* Subtle dark tint over the map so plane markers and overlays pop */
 .leaflet-tile-pane {
-    filter: brightness(1.6) contrast(0.9) saturate(1.2);
+    filter: brightness(0.88) contrast(1.05) saturate(0.95);
 }
 
 /* Radar Sweeper Overlay */
@@ -964,7 +964,7 @@ h1, h2, h3, h4, h5, h6 {
    Leaflet Custom Elements Overrides & Airplane Markers
    ========================================================================== */
 .leaflet-container {
-    background-color: #091525 !important;
+    background-color: #e5e0d8 !important;
 }
 
 /* User Location Marker */
@@ -1076,7 +1076,7 @@ h1, h2, h3, h4, h5, h6 {
     width: 24px;
     height: 24px;
     fill: var(--accent-cyan);
-    filter: drop-shadow(0 0 2px rgba(0, 229, 255, 0.6));
+    filter: drop-shadow(0 0 3px #000) drop-shadow(0 0 2px rgba(0, 229, 255, 0.9));
     transition: fill 0.3s ease;
 }
 
@@ -1140,21 +1140,21 @@ h1, h2, h3, h4, h5, h6 {
     top: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(5, 10, 24, 0.9);
-    border: 1px solid rgba(0, 229, 255, 0.2);
+    background: rgba(2, 5, 15, 0.92);
+    border: 1px solid rgba(0, 229, 255, 0.35);
     color: #ffffff;
     padding: 3px 6px;
     border-radius: 4px;
     font-family: 'Outfit', sans-serif;
     font-size: 8px;
-    font-weight: 600;
+    font-weight: 700;
     white-space: nowrap;
     pointer-events: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     line-height: 1.2;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7);
     z-index: 999;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
