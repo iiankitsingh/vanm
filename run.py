@@ -17,10 +17,9 @@ def main():
     else:
         subprocess.run([sys.executable, "update_flights.py"])
 
-    # 2. Serve docs folder on port 8080
+    # 2. Serve root folder on port 8080
     port = 8080
-    docs_dir = os.path.join(current_dir, "docs")
-    os.chdir(docs_dir)
+    os.chdir(current_dir)
 
     Handler = http.server.SimpleHTTPRequestHandler
     

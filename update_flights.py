@@ -390,8 +390,7 @@ def main():
         flights = generate_simulated_flights()
         
     # Write to flights.json
-    os.makedirs("docs", exist_ok=True)
-    flights_json_path = os.path.join("docs", "flights.json")
+    flights_json_path = "flights.json"
     with open(flights_json_path, "w") as f:
         json.dump(flights, f, indent=2)
         
