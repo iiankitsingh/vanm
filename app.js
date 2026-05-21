@@ -14,8 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
         markers: {},      // Map of icao24 -> Leaflet marker
         airportLayers: [], // Reference to static airport circles
         selectedTrail: null, // Active flight path polyline
+        notamLayers: {},     // NOTAM ID -> Leaflet layer
         mapCenter: [19.03, 72.96],
-        mapDefaultZoom: 11
+        mapDefaultZoom: 11,
+        soundEnabled: true,
+        selectedNotamId: null
     };
 
     // Airplane SVG raw markup
@@ -58,6 +61,20 @@ document.addEventListener('DOMContentLoaded', () => {
         detailGate: document.getElementById('detail-gate'),
         detailGateContainer: document.getElementById('detail-gate-container'),
         
+        // New telemetry detail fields
+        detailOwner: document.getElementById('detail-owner'),
+        detailSource: document.getElementById('detail-source'),
+        detailDistRem: document.getElementById('detail-dist-rem'),
+        detailEta: document.getElementById('detail-eta'),
+        
+        // Sound controls
+        soundToggleBtn: document.getElementById('sound-toggle-btn'),
+        soundIcon: document.getElementById('sound-icon'),
+        
+        // NOTAM Elements
+        notamsCount: document.getElementById('notams-count'),
+        notamsTableBody: document.querySelector('#notams-table tbody'),
+        
         // Enriched metadata fields
         detailPhotoImg: document.getElementById('detail-photo-img'),
         detailPhotoCredit: document.getElementById('detail-photo-credit'),
@@ -80,6 +97,326 @@ document.addEventListener('DOMContentLoaded', () => {
         departuresTableBody: document.querySelector('#departures-table tbody'),
         groundTableBody: document.querySelector('#ground-table tbody')
     };
+
+    };
+
+    // ==========================================================================
+    // Web Audio API Synthesizer Sound Generator
+    // ==========================================================================
+    let audioCtx = null;
+    function playBeep(frequency = 800, type = 'sine', duration = 0.08) {
+        if (!state.soundEnabled) return;
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            
+            // smooth exponential volume envelope to avoid clicking sounds
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+            console.warn("Audio Context failed to play beep:", e);
+        }
+    }
+
+    // ==========================================================================
+    // Active Airspace NOTAMs Database (VABB / VANM)
+    // ==========================================================================
+    const NOTAMS = [
+        {
+            id: "A0421/26",
+            airport: "VABB",
+            category: "RUNWAY",
+            severity: "CRITICAL",
+            desc: "CSMIA VABB RWY 09/27 CLOSED FOR RE-CARPETING AND RUNWAY JOINT REPAIR WORK. ALL DEPARTURES/ARRIVALS ROUTED VIA RWY 14/32. EXPECT MINOR DELAYS DURING PEAK HOURS.",
+            validity: "2026-05-15 to 2026-06-15",
+            type: "circle",
+            coordinates: [19.0896, 72.8656],
+            radius: 800
+        },
+        {
+            id: "A1102/26",
+            airport: "VANM",
+            category: "AIRSPACE",
+            severity: "WARNING",
+            desc: "TEMPORARY FLIGHT RESTRICTION (TFR) IN EFFECT FOR ALL UAV / DRONE OPERATIONS WITHIN NAVI MUMBAI INTL AIRPORT CONSTRUCTION AREA RADIAL BOUNDARY FOR SAFETY DEMARCATION.",
+            validity: "2026-04-01 to 2026-10-31",
+            type: "circle",
+            coordinates: [18.9919, 73.0617],
+            radius: 2500
+        },
+        {
+            id: "B0833/26",
+            airport: "VABB",
+            category: "HAZARD",
+            severity: "INFO",
+            desc: "REPORTED INCREASED BIRD DENSITY & NESTING ACTIVITY AT SANJAY GANDHI NATIONAL PARK CORRIDORS. ALL FLIGHTS AVOIDING NORTHERN RUNWAY APPROACH PATHS DIRECTED TO MAINTAIN FL050 OR HIGHER.",
+            validity: "2026-05-01 to 2026-07-31",
+            type: "polygon",
+            coordinates: [
+                [19.16, 72.88],
+                [19.29, 72.87],
+                [19.28, 72.96],
+                [19.17, 72.95]
+            ]
+        },
+        {
+            id: "D0219/26",
+            airport: "MUMBAI ARTCC",
+            category: "MILITARY",
+            severity: "CRITICAL",
+            desc: "LIVE FIRING EXERCISE BY INDIAN NAVAL SHIPS IN DANGER AREA VAD-12 (MUMBAI OFFSHORE ARABIAN SEA). FLIGHT OPERATIONS PROHIBITED BELOW FL150 within designated coordinates.",
+            validity: "2026-05-22 to 2026-05-26",
+            type: "polygon",
+            coordinates: [
+                [18.85, 72.50],
+                [18.98, 72.50],
+                [18.98, 72.65],
+                [18.85, 72.65]
+            ]
+        },
+        {
+            id: "A0444/26",
+            airport: "VABB",
+            category: "TAXIWAY",
+            severity: "WARNING",
+            desc: "TAXIWAY N2 BETWEEN INTERSECTIONS N1 AND GATE G CLOSED FOR SUB-SURFACE ELECTRICAL CONDUIT REPLACEMENT AND MARKING REPAINTING.",
+            validity: "2026-05-20 to 2026-05-28",
+            type: "circle",
+            coordinates: [19.0945, 72.8610],
+            radius: 400
+        },
+        {
+            id: "C0156/26",
+            airport: "VANM",
+            category: "NAVAID",
+            severity: "INFO",
+            desc: "NAVI MUMBAI DVOR (VNM, 115.3 MHZ) RADAR BEACON TRANSMITTER RUNNING ON REDUNDANT TEST MODE FOR SYSTEM CALIBRATION. MINOR ANOMALIES MIGHT BE OBSERVED ON VHF RECEIVERS.",
+            validity: "2026-05-21 to 2026-05-25",
+            type: "circle",
+            coordinates: [18.9950, 73.0720],
+            radius: 1200
+        }
+    ];
+
+    // ==========================================================================
+    // Geodesic / Navigational Calculator Helpers
+    // ==========================================================================
+    function getAirportCoordsByCode(code) {
+        if (!code) return null;
+        code = code.toUpperCase();
+        if (AIRPORTS[code]) return AIRPORTS[code].coords;
+        for (const k in AIRPORTS) {
+            if (AIRPORTS[k].iata === code) {
+                return AIRPORTS[k].coords;
+            }
+        }
+        return null;
+    }
+
+    function getFlightDestinationCoords(flight) {
+        let coords = getAirportCoordsByCode(flight.destination_iata) || getAirportCoordsByCode(flight.destination);
+        if (!coords) {
+            const targetAirport = flight.airport || 'VABB';
+            coords = AIRPORTS[targetAirport] ? AIRPORTS[targetAirport].coords : [19.0896, 72.8656];
+        }
+        return coords;
+    }
+
+    function updateDistanceAndETA(flight) {
+        if (flight.type === 'on_ground') {
+            flight.distanceRemaining = 0;
+            flight.etaMinutes = 0;
+            return;
+        }
+
+        const destCoords = getFlightDestinationCoords(flight);
+        if (!destCoords) {
+            flight.distanceRemaining = 0;
+            flight.etaMinutes = 0;
+            return;
+        }
+
+        const dist = calculateDistance(flight.lat, flight.lon, destCoords[0], destCoords[1]);
+        flight.distanceRemaining = Math.round(dist);
+
+        if (flight.speed > 30) {
+            // Speed in kts (nautical miles/hr) -> converted to km/hr
+            const speedKmh = flight.speed * 1.852;
+            const timeHours = dist / speedKmh;
+            flight.etaMinutes = Math.max(1, Math.round(timeHours * 60));
+        } else {
+            flight.etaMinutes = 0;
+        }
+    }
+
+    // ==========================================================================
+    // NOTAM Map Overlay & Board Rendering Logics
+    // ==========================================================================
+    function drawNotamOverlays() {
+        // Clear existing NOTAM layers from Map
+        Object.keys(state.notamLayers).forEach(id => {
+            state.map.removeLayer(state.notamLayers[id]);
+        });
+        state.notamLayers = {};
+
+        NOTAMS.forEach(notam => {
+            let layer;
+            const severityColor = getSeverityColor(notam.severity);
+            
+            if (notam.type === 'circle') {
+                layer = L.circle(notam.coordinates, {
+                    color: severityColor,
+                    fillColor: severityColor,
+                    fillOpacity: 0.08,
+                    weight: 1.5,
+                    dashArray: '5, 5',
+                    radius: notam.radius
+                });
+            } else if (notam.type === 'polygon') {
+                layer = L.polygon(notam.coordinates, {
+                    color: severityColor,
+                    fillColor: severityColor,
+                    fillOpacity: 0.08,
+                    weight: 1.5,
+                    dashArray: '5, 5'
+                });
+            }
+
+            if (layer) {
+                layer.addTo(state.map);
+                layer.bindTooltip(`<strong>NOTAM ${notam.id}</strong><br>${notam.category}: ${notam.severity}`, {
+                    sticky: true,
+                    className: 'airplane-tooltip'
+                });
+                
+                layer.on('click', () => {
+                    selectNotam(notam.id);
+                });
+
+                state.notamLayers[notam.id] = layer;
+            }
+        });
+    }
+
+    function getSeverityColor(severity) {
+        if (severity === 'CRITICAL') return 'var(--accent-red)';
+        if (severity === 'WARNING') return 'var(--accent-amber)';
+        return 'var(--accent-cyan)';
+    }
+
+    function selectNotam(notamId, zoomTo = true) {
+        state.selectedNotamId = notamId;
+
+        // Play alert blip sounds based on NOTAM severity
+        const notam = NOTAMS.find(n => n.id === notamId);
+        if (notam) {
+            if (notam.severity === 'CRITICAL') {
+                playBeep(440, 'triangle', 0.15);
+                setTimeout(() => playBeep(440, 'triangle', 0.15), 180);
+            } else if (notam.severity === 'WARNING') {
+                playBeep(520, 'sine', 0.12);
+                setTimeout(() => playBeep(780, 'sine', 0.1), 100);
+            } else {
+                playBeep(880, 'sine', 0.08);
+            }
+        }
+
+        // Restyle map warning layers
+        NOTAMS.forEach(n => {
+            const layer = state.notamLayers[n.id];
+            if (layer) {
+                const isSelected = n.id === notamId;
+                const baseColor = getSeverityColor(n.severity);
+                layer.setStyle({
+                    color: baseColor,
+                    weight: isSelected ? 3.5 : 1.5,
+                    dashArray: isSelected ? '0' : '5, 5',
+                    fillOpacity: isSelected ? 0.25 : 0.08
+                });
+                
+                if (isSelected) {
+                    layer.bringToFront();
+                }
+            }
+        });
+
+        // Highlight selected row in FIDS NOTAM table list
+        const rows = elements.notamsTableBody.querySelectorAll('tr');
+        rows.forEach(row => {
+            if (row.dataset.id === notamId) {
+                row.classList.add('selected-row');
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                row.classList.remove('selected-row');
+            }
+        });
+
+        // Smooth fly camera viewport to region bounds
+        if (zoomTo && notam) {
+            const layer = state.notamLayers[notam.id];
+            if (layer) {
+                if (notam.type === 'circle') {
+                    state.map.setView(notam.coordinates, 14, { duration: 1.2 });
+                } else if (notam.type === 'polygon') {
+                    state.map.flyToBounds(layer.getBounds(), {
+                        padding: [50, 50],
+                        duration: 1.2
+                    });
+                }
+            }
+        }
+    }
+
+    function renderNOTAMs() {
+        if (!elements.notamsTableBody) return;
+
+        elements.notamsCount.textContent = `${NOTAMS.length} Active NOTAMs`;
+
+        elements.notamsTableBody.innerHTML = NOTAMS.map(n => `
+            <tr class="notam-row ${state.selectedNotamId === n.id ? 'selected-row' : ''}" data-id="${n.id}">
+                <td><strong style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">${n.id}</strong></td>
+                <td><strong style="color: #fff;">${n.airport}</strong></td>
+                <td><span style="font-size: 11px; font-weight: 500; color: var(--text-secondary);">${n.category}</span></td>
+                <td style="max-width: 320px; font-size: 12px; line-height: 1.4; color: var(--text-primary); text-align: left;">${n.desc}</td>
+                <td style="font-family: 'Fira Code', monospace; font-size: 11px; color: var(--text-muted);">${n.validity}</td>
+                <td><span class="severity-badge ${n.severity.toLowerCase()}">${n.severity}</span></td>
+                <td><button class="show-notam-btn" data-id="${n.id}">Show on Map</button></td>
+            </tr>
+        `).join('');
+
+        // Attach event clicks on rows and action buttons
+        elements.notamsTableBody.querySelectorAll('.notam-row').forEach(row => {
+            row.addEventListener('click', (e) => {
+                if (e.target.classList.contains('show-notam-btn')) return;
+                const id = row.dataset.id;
+                selectNotam(id, false);
+            });
+        });
+
+        elements.notamsTableBody.querySelectorAll('.show-notam-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                elements.tabs[0].click(); // Activate Map tab
+                selectNotam(id, true);
+            });
+        });
+    }
 
     // Initialize Map and Airport Rings
     function initMap() {
@@ -116,6 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }).addTo(state.map).bindTooltip("Navi Mumbai (VANM) Control Zone", { sticky: true, className: 'airplane-tooltip' });
 
         state.airportLayers = [vabbRunway, vanmRunway];
+        drawNotamOverlays();
+        renderNOTAMs();
     }
 
     // Seedable PRNG & Metadata Databases
@@ -187,18 +526,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const AIRPORTS = {
-        "VABB": { fullname: "Chhatrapati Shivaji Maharaj Intl (BOM/VABB)", city: "Mumbai", iata: "BOM" },
-        "VANM": { fullname: "Navi Mumbai International (NMIA/VANM)", city: "Navi Mumbai", iata: "NMIA" },
-        "VIDP": { fullname: "Indira Gandhi International (DEL/VIDP)", city: "Delhi", iata: "DEL" },
-        "VOBL": { fullname: "Kempegowda International (BLR/VOBL)", city: "Bangalore", iata: "BLR" },
-        "VOMM": { fullname: "Chennai International (MAA/VOMM)", city: "Chennai", iata: "MAA" },
-        "VOGO": { fullname: "Manohar International (GOX/VOGO)", city: "Goa", iata: "GOX" },
-        "VAPO": { fullname: "Pune Airport (PNQ/VAPO)", city: "Pune", iata: "PNQ" },
-        "OMDB": { fullname: "Dubai International (DXB/OMDB)", city: "Dubai", iata: "DXB" },
-        "WSSS": { fullname: "Singapore Changi (SIN/WSSS)", city: "Singapore", iata: "SIN" },
-        "EGLL": { fullname: "London Heathrow (LHR/EGLL)", city: "London", iata: "LHR" },
-        "QTR": { fullname: "Doha Hamad International (DOH/OTBD)", city: "Doha", iata: "DOH" },
-        "AUH": { fullname: "Abu Dhabi International (AUH/OMAA)", city: "Abu Dhabi", iata: "AUH" }
+        "VABB": { fullname: "Chhatrapati Shivaji Maharaj Intl (BOM/VABB)", city: "Mumbai", iata: "BOM", coords: [19.0896, 72.8656] },
+        "VANM": { fullname: "Navi Mumbai International (NMIA/VANM)", city: "Navi Mumbai", iata: "NMIA", coords: [18.9919, 73.0617] },
+        "VIDP": { fullname: "Indira Gandhi International (DEL/VIDP)", city: "Delhi", iata: "DEL", coords: [28.5665, 77.1031] },
+        "VOBL": { fullname: "Kempegowda International (BLR/VOBL)", city: "Bangalore", iata: "BLR", coords: [13.1986, 77.7066] },
+        "VOMM": { fullname: "Chennai International (MAA/VOMM)", city: "Chennai", iata: "MAA", coords: [12.9941, 80.1709] },
+        "VOGO": { fullname: "Manohar International (GOX/VOGO)", city: "Goa", iata: "GOX", coords: [15.6528, 73.8685] },
+        "VAPO": { fullname: "Pune Airport (PNQ/VAPO)", city: "Pune", iata: "PNQ", coords: [18.5821, 73.9197] },
+        "OMDB": { fullname: "Dubai International (DXB/OMDB)", city: "Dubai", iata: "DXB", coords: [25.2532, 55.3657] },
+        "WSSS": { fullname: "Singapore Changi (SIN/WSSS)", city: "Singapore", iata: "SIN", coords: [1.3644, 103.9915] },
+        "EGLL": { fullname: "London Heathrow (LHR/EGLL)", city: "London", iata: "LHR", coords: [51.4700, -0.4543] },
+        "QTR": { fullname: "Doha Hamad International (DOH/OTBD)", city: "Doha", iata: "DOH", coords: [25.2731, 51.5585] },
+        "AUH": { fullname: "Abu Dhabi International (AUH/OMAA)", city: "Abu Dhabi", iata: "AUH", coords: [24.4283, 54.6511] }
     };
 
     // Mulberry32 + cyrb128 string hash implementation for seeded random number generation
@@ -381,6 +720,47 @@ document.addEventListener('DOMContentLoaded', () => {
             manufacturer = "Gulfstream";
         }
 
+        // Generate Owner / Operator info based on callsign prefix
+        const privateOwners = [
+            "Reliance Industries (Mukesh Ambani)",
+            "Adani Aviation (Gautam Adani)",
+            "Tata Sons Private Jet",
+            "Poonawalla Aviation Pvt Ltd",
+            "Jindal Steel & Power (JSPL)",
+            "GMR Aviation",
+            "Hinduja Group VIP",
+            "Birla Group Aviation",
+            "Mahindra & Mahindra VIP",
+            "Godrej Group VIP"
+        ];
+        
+        let owner = "Private Owner";
+        if (prefix === "AIC") owner = "Tata Group / Air India";
+        else if (prefix === "IGO") owner = "InterGlobe Aviation Ltd (IndiGo)";
+        else if (prefix === "VTI") owner = "Tata SIA Airlines Ltd (Vistara)";
+        else if (prefix === "SEJ") owner = "SpiceJet Ltd";
+        else if (prefix === "AKJ") owner = "SNV Aviation Pvt Ltd (Akasa Air)";
+        else if (prefix === "UAE") owner = "The Emirates Group";
+        else if (prefix === "SIA") owner = "Singapore Airlines Group";
+        else if (prefix === "QTR") owner = "Qatar Airways Group";
+        else if (prefix === "BAW") owner = "International Airlines Group";
+        else if (prefix === "LHA") owner = "Lufthansa Group";
+        else if (prefix === "ETD") owner = "Etihad Aviation Group";
+        else if (prefix === "JAI") owner = "Jalan Kalrock Consortium";
+        else {
+            owner = randomChoice(rngCallsign, privateOwners);
+        }
+
+        // Generate Radar Feed Source
+        const feedSources = [
+            "VABB ADS-B Ground Feed",
+            "VANM ADS-B Ground Feed",
+            "Mumbai ATC En Route Sector",
+            "Navi Mumbai Tower Receiver",
+            "VABB Multilateration (MLAT) Grid"
+        ];
+        const source = randomChoice(rngCallsign, feedSources);
+
         return {
             registration: reg,
             serial_number: `MSN ${msn}`,
@@ -397,7 +777,9 @@ document.addEventListener('DOMContentLoaded', () => {
             dep_time: depTime,
             arr_time: arrTime,
             photographer: photographer,
-            manufacturer: manufacturer
+            manufacturer: manufacturer,
+            owner: owner,
+            source: source
         };
     }
 
@@ -773,6 +1155,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Calculate initial distance and ETA for all flights
+        state.flights.forEach(f => {
+            updateDistanceAndETA(f);
+        });
+
         updateTimestamp();
         updateFIDSCounts();
         renderFIDSBoards();
@@ -1127,6 +1514,19 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.detailAltitude.textContent = formatAltitude(flight.altitude);
         elements.detailSpeed.textContent = formatSpeed(flight.speed);
         elements.detailHeading.textContent = `${flight.heading}°`;
+
+        // Enriched Jet Owner / Feed Source
+        elements.detailOwner.textContent = flight.owner || 'Private Owner';
+        elements.detailSource.textContent = flight.source || 'VABB ADS-B Ground Feed';
+
+        // Geodesic Distance and Est. Time Remaining
+        if (flight.type === 'on_ground') {
+            elements.detailDistRem.textContent = 'GND';
+            elements.detailEta.textContent = '---';
+        } else {
+            elements.detailDistRem.textContent = flight.distanceRemaining ? `${flight.distanceRemaining} km` : 'Calculating...';
+            elements.detailEta.textContent = flight.etaMinutes ? `${flight.etaMinutes} min` : 'Calculating...';
+        }
         
         // Vertical rate formatting
         const vrate = flight.vertical_rate;
@@ -1164,6 +1564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close Telemetry panel viewer
     function closeTelemetry() {
+        playBeep(650, 'sine', 0.05);
         state.selectedFlightId = null;
         elements.detailViewer.classList.add('hidden');
         
@@ -1189,6 +1590,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listener: Airport Filter Buttons
     elements.filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
+            playBeep(950, 'sine', 0.04);
             elements.filterButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
@@ -1202,6 +1604,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listener: Tab switches
     elements.tabs.forEach(tab => {
         tab.addEventListener('click', () => {
+            playBeep(1100, 'sine', 0.04);
             elements.tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
@@ -1224,6 +1627,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Event listener: Sound toggle button
+    if (elements.soundToggleBtn) {
+        elements.soundToggleBtn.addEventListener('click', () => {
+            state.soundEnabled = !state.soundEnabled;
+            if (state.soundEnabled) {
+                elements.soundToggleBtn.innerHTML = '<span id="sound-icon">🔊</span> AUDIO ON';
+                elements.soundToggleBtn.classList.remove('muted');
+                playBeep(900, 'sine', 0.08); // play test confirmation beep
+            } else {
+                elements.soundToggleBtn.innerHTML = '<span id="sound-icon">🔇</span> AUDIO OFF';
+                elements.soundToggleBtn.classList.add('muted');
+            }
+        });
+    }
 
     // Initialize map, load telemetry data, and start auto-refresh intervals
     initMap();
@@ -1249,6 +1667,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (f.vertical_rate !== 0) {
                 f.altitude = Math.max(0, Math.round(f.baseAltitude + (f.vertical_rate / 60) * elapsedSeconds));
             }
+            
+            // Re-calculate geodesic distance and live ETA
+            updateDistanceAndETA(f);
         });
         
         // Re-render markers and updated trails
@@ -1261,6 +1682,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.detailAltitude.textContent = formatAltitude(flight.altitude);
                 elements.detailLat.textContent = flight.lat.toFixed(4);
                 elements.detailLon.textContent = flight.lon.toFixed(4);
+                
+                // Live update distance remaining and ETA
+                if (flight.type === 'on_ground') {
+                    elements.detailDistRem.textContent = 'GND';
+                    elements.detailEta.textContent = '---';
+                } else {
+                    elements.detailDistRem.textContent = flight.distanceRemaining ? `${flight.distanceRemaining} km` : 'Calculating...';
+                    elements.detailEta.textContent = flight.etaMinutes ? `${flight.etaMinutes} min` : 'Calculating...';
+                }
                 
                 // Re-calculate and update route progress
                 let progressPercent = 0;

@@ -41,7 +41,15 @@
                 <button class="nav-btn" data-tab="tab-ground">
                     <span class="btn-icon">🚜</span> Ground traffic
                 </button>
+                <button class="nav-btn" data-tab="tab-notams">
+                    <span class="btn-icon">🚫</span> Airspace NOTAMs
+                </button>
             </nav>
+            
+            <div class="sidebar-branding">
+                <span class="design-by">ENGINEERED BY</span>
+                <span class="engineer-name">ANKIT SINGH</span>
+            </div>
             
             <div class="system-status">
                 <div class="status-indicator online"></div>
@@ -58,16 +66,21 @@
             <header class="app-header">
                 <div class="header-title">
                     <h2>Live Airspace Tracking & Flight Board</h2>
-                    <p>Real-time ADS-B radar and FIDS updates for Chhatrapati Shivaji Maharaj (VABB) & Navi Mumbai (VANM).</p>
+                    <p>Real-time ADS-B radar and FIDS updates for Chhatrapati Shivaji Maharaj (VABB) & Navi Mumbai (VANM) • Engineered by Ankit Singh</p>
                 </div>
-                <div class="airport-badges">
-                    <div class="airport-badge">
-                        <span class="badge-icao vabb-icao">VABB</span>
-                        <span class="badge-label">Mumbai CSMIA</span>
-                    </div>
-                    <div class="airport-badge">
-                        <span class="badge-icao vanm-icao">VANM</span>
-                        <span class="badge-label">Navi Mumbai Intl</span>
+                <div class="header-actions">
+                    <button id="sound-toggle-btn" class="sound-btn" title="Toggle System Sounds">
+                        <span id="sound-icon">🔊</span> AUDIO ON
+                    </button>
+                    <div class="airport-badges">
+                        <div class="airport-badge">
+                            <span class="badge-icao vabb-icao">VABB</span>
+                            <span class="badge-label">Mumbai CSMIA</span>
+                        </div>
+                        <div class="airport-badge">
+                            <span class="badge-icao vanm-icao">VANM</span>
+                            <span class="badge-label">Navi Mumbai Intl</span>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -93,7 +106,10 @@
                 <div class="grid-container">
                     <!-- Radar Viewport -->
                     <section class="panel map-panel glassmorphism">
-                        <div class="radar-sweep-overlay"></div>
+                        <div class="scanlines-overlay"></div>
+                        <div class="radar-sweep-overlay">
+                            <div class="radar-sweep-line"></div>
+                        </div>
                         <div id="map"></div>
                     </section>
 
@@ -152,6 +168,10 @@
                             </div>
                             
                             <div class="telemetry-grid">
+                                <div class="tel-item span-2">
+                                    <span class="tel-label">Owner / Operator</span>
+                                    <span class="tel-value" id="detail-owner">N/A</span>
+                                </div>
                                 <div class="tel-item">
                                     <span class="tel-label">Registration</span>
                                     <span class="tel-value" id="detail-registration">VT-ANP</span>
@@ -173,6 +193,10 @@
                                     <span class="tel-value" id="detail-engines">2x RR Trent 1000</span>
                                 </div>
                                 <div class="tel-item">
+                                    <span class="tel-label">Radar Source</span>
+                                    <span class="tel-value" id="detail-source">VABB ADS-B Ground Feed</span>
+                                </div>
+                                <div class="tel-item">
                                     <span class="tel-label">Altitude</span>
                                     <span class="tel-value" id="detail-altitude">12,000 ft</span>
                                 </div>
@@ -189,6 +213,14 @@
                                     <span class="tel-value" id="detail-vrate">+1,200 fpm</span>
                                 </div>
                                 <div class="tel-item">
+                                    <span class="tel-label">Distance Remaining</span>
+                                    <span class="tel-value" id="detail-dist-rem">-- km</span>
+                                </div>
+                                <div class="tel-item">
+                                    <span class="tel-label">Est. Time Remaining</span>
+                                    <span class="tel-value" id="detail-eta">-- min</span>
+                                </div>
+                                <div class="tel-item span-2">
                                     <span class="tel-label">Coordinates</span>
                                     <span class="tel-value" style="font-size: 11px;"><span id="detail-lat">19.089</span>, <span id="detail-lon">72.865</span></span>
                                 </div>
@@ -201,6 +233,10 @@
                             <div class="telemetry-footer">
                                 <span>Squawk: <strong id="detail-squawk">4521</strong></span>
                                 <span>ICAO24: <strong id="detail-icao24">800c24</strong></span>
+                            </div>
+                            
+                            <div class="telemetry-branding">
+                                <span>Dashboard Engineered by Ankit Singh</span>
                             </div>
                         </div>
                     </section>
@@ -290,6 +326,36 @@
                             <tbody>
                                 <tr>
                                     <td colspan="7" class="table-empty">Loading ground traffic data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Tab 5: Airspace NOTAMs -->
+            <div id="tab-notams" class="tab-panel">
+                <section class="panel board-panel glassmorphism">
+                    <div class="board-header">
+                        <h3>Active Airspace NOTAMs & Flight Restrictions</h3>
+                        <span class="flight-count-tag" id="notams-count">0 Active NOTAMs</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="fids-table" id="notams-table">
+                            <thead>
+                                <tr>
+                                    <th>NOTAM ID</th>
+                                    <th>Airport / Sector</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Validity</th>
+                                    <th>Severity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="7" class="table-empty">Loading NOTAM data...</td>
                                 </tr>
                             </tbody>
                         </table>

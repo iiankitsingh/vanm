@@ -267,6 +267,47 @@ def get_flight_metadata(callsign, aircraft_type, flight_type, closer_airport, cu
         manufacturer = "Airbus"
     elif "Gulfstream" in m_info["name"]:
         manufacturer = "Gulfstream"
+        
+    # Generate Owner / Operator info based on callsign prefix
+    random.seed(callsign)
+    private_owners = [
+        "Reliance Industries (Mukesh Ambani)",
+        "Adani Group (Gautam Adani)",
+        "Tata Sons Private Aviation",
+        "Poonawalla Aviation (Serum Institute)",
+        "JSW Aviation (Sajjan Jindal)",
+        "Mahindra & Mahindra Aviation",
+        "NetJets Private Aviation",
+        "Club One Air",
+        "Birla Group Aviation",
+        "GMR Group Aviation"
+    ]
+    
+    owner = "Private Owner"
+    if prefix == "AIC": owner = "Tata Group / Air India"
+    elif prefix == "IGO": owner = "InterGlobe Aviation Ltd (IndiGo)"
+    elif prefix == "VTI": owner = "Tata SIA Airlines Ltd (Vistara)"
+    elif prefix == "SEJ": owner = "SpiceJet Ltd"
+    elif prefix == "AKJ": owner = "SNV Aviation Pvt Ltd (Akasa Air)"
+    elif prefix == "UAE": owner = "The Emirates Group"
+    elif prefix == "SIA": owner = "Singapore Airlines Group"
+    elif prefix == "QTR": owner = "Qatar Airways Group"
+    elif prefix == "BAW": owner = "International Airlines Group"
+    elif prefix == "LHA": owner = "Lufthansa Group"
+    elif prefix == "ETD": owner = "Etihad Aviation Group"
+    elif prefix == "JAI": owner = "Jalan Kalrock Consortium"
+    else:
+        owner = random.choice(private_owners)
+        
+    # Generate Radar Feed Source
+    if closer_airport == "VABB":
+        source = "VABB ADS-B Ground Feed"
+    elif closer_airport == "VANM":
+        source = "VANM MLAT Ground Feed"
+    else:
+        source = "OpenSky Satellite Relayed"
+        
+    random.seed()
     
     return {
         "registration": reg,
@@ -284,7 +325,9 @@ def get_flight_metadata(callsign, aircraft_type, flight_type, closer_airport, cu
         "dep_time": dep_time,
         "arr_time": arr_time,
         "photographer": photographer,
-        "manufacturer": manufacturer
+        "manufacturer": manufacturer,
+        "owner": owner,
+        "source": source
     }
 
 def generate_simulated_flights():
