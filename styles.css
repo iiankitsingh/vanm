@@ -53,6 +53,7 @@ body {
     height: 100vh;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -417,7 +418,12 @@ h1, h2, h3, h4, h5, h6 {
 #map {
     height: 100%;
     width: 100%;
-    background-color: #030610;
+    background-color: #091525;
+}
+
+/* Brighten the map tiles slightly */
+.leaflet-tile-pane {
+    filter: brightness(1.6) contrast(0.9) saturate(1.2);
 }
 
 /* Radar Sweeper Overlay */
@@ -930,8 +936,44 @@ h1, h2, h3, h4, h5, h6 {
    Leaflet Custom Elements Overrides & Airplane Markers
    ========================================================================== */
 .leaflet-container {
-    background-color: #030610 !important;
+    background-color: #091525 !important;
 }
+
+/* User Location Marker */
+.user-location-marker {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.user-location-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--accent-amber);
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 8px rgba(255, 179, 0, 0.8);
+    position: relative;
+    z-index: 2;
+}
+.user-location-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 179, 0, 0.6);
+    animation: location-pulse 1.8s ease-out infinite;
+}
+@keyframes location-pulse {
+    0%   { transform: translate(-50%,-50%) scale(0.5); opacity: 0.9; }
+    100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+}
+
 
 .leaflet-bar {
     border: 1px solid rgba(0, 229, 255, 0.1) !important;
@@ -1431,93 +1473,245 @@ input:focus, button:focus {
 }
 
 /* ==========================================================================
-   Responsive Adaptations
+   Responsive Adaptations — Tablet & Desktop (≥ 1024px: sidebar layout)
    ========================================================================== */
-@media (max-width: 1024px) {
+
+/* ── Mobile-first: stack everything vertically ────────────────────────────── */
+@media (max-width: 1023px) {
+
+    /* Allow the page to scroll naturally on mobile */
+    body {
+        height: auto;
+        overflow: auto;
+        overflow-x: hidden;
+        /* Room for fixed bottom nav */
+        padding-bottom: 70px;
+    }
+
     .app-layout {
         flex-direction: column;
-        overflow: auto;
-    }
-    
-    .sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid rgba(0, 229, 255, 0.08);
         height: auto;
-        padding: 16px 24px;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        min-height: 100vh;
     }
-    
-    .brand {
-        margin-bottom: 0;
-    }
-    
-    .navigation {
-        flex-direction: row;
-        flex-grow: 0;
-        gap: 6px;
-    }
-    
-    .system-status {
+
+    /* ── Hide the desktop sidebar completely ── */
+    .sidebar {
         display: none;
     }
-    
+
+    /* ── Bottom Navigation Bar ── */
+    .sidebar::after {
+        display: none;
+    }
+
+    /* Mobile bottom nav — injected via CSS so no HTML changes needed */
+    .mobile-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: rgba(2, 5, 12, 0.96);
+        border-top: 1px solid rgba(0, 229, 255, 0.12);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 0;
+        height: 64px;
+        justify-content: space-around;
+        align-items: stretch;
+    }
+
+    .mobile-nav-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-family: 'Outfit', sans-serif;
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        padding: 8px 4px;
+        transition: var(--transition-smooth);
+        position: relative;
+    }
+
+    .mobile-nav-btn .mnav-icon {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .mobile-nav-btn.active {
+        color: var(--accent-cyan);
+        text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+    }
+
+    .mobile-nav-btn.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 20%;
+        right: 20%;
+        height: 2px;
+        background: var(--accent-cyan);
+        border-radius: 0 0 3px 3px;
+        box-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+    }
+
+    /* ── Main content takes full width ── */
     .main-content {
+        flex-grow: 1;
         height: auto;
         overflow: visible;
     }
-    
+
+    /* ── Header compact ── */
+    .app-header {
+        padding: 12px 16px;
+        height: auto;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        border-bottom: 1px solid rgba(0, 229, 255, 0.06);
+    }
+
+    .header-title h2 {
+        font-size: 17px;
+    }
+
+    .header-title p {
+        font-size: 10px;
+        display: none; /* hide long subtitle */
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .airport-badges {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* ── Search bar full width ── */
+    .filter-controls-bar {
+        padding: 10px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .airport-filter {
+        justify-content: flex-start;
+    }
+
+    /* ── Tab Panels: auto height, scrollable ── */
     .tab-panel {
         height: auto;
+        padding: 12px 16px 16px;
         overflow: visible;
     }
-    
-    .grid-container {
-        grid-template-columns: 1fr;
-        height: 600px;
-    }
-    
-    .detail-panel {
-        max-height: 400px;
-    }
-}
 
-@media (max-width: 768px) {
-    .sidebar {
+    /* ── Map tab: give map a tall fixed height ── */
+    #tab-map .grid-container {
+        display: flex;
         flex-direction: column;
-        gap: 16px;
-        align-items: flex-start;
-    }
-    
-    .navigation {
-        width: 100%;
-        overflow-x: auto;
-        padding-bottom: 4px;
-    }
-    
-    .nav-btn {
-        flex-shrink: 0;
-    }
-    
-    .app-header {
-        padding: 16px;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
         height: auto;
         gap: 12px;
     }
-    
-    .filter-controls-bar {
-        padding: 12px 16px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 14px;
-    }
-    
-    .search-box {
+
+    #tab-map .map-panel {
+        height: 55vh;
+        min-height: 320px;
         width: 100%;
+    }
+
+    #map {
+        height: 100% !important;
+        width: 100% !important;
+    }
+
+    /* telemetry panel becomes a card below the map */
+    #tab-map .detail-panel {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    /* ── FIDS tables: horizontal scroll on small screens ── */
+    .board-panel {
+        padding: 16px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .fids-table {
+        min-width: 560px;
+    }
+
+    /* ── Telemetry grid: single column ── */
+    .telemetry-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .tel-item.span-2 {
+        grid-column: span 2;
+    }
+}
+
+/* ── Very small phones ────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .header-title h2 {
+        font-size: 15px;
+    }
+
+    .badge-label {
+        display: none;
+    }
+
+    #tab-map .map-panel {
+        height: 50vh;
+        min-height: 280px;
+    }
+
+    .telemetry-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tel-item.span-2 {
+        grid-column: span 1;
+    }
+
+    .mobile-nav-btn .mnav-label {
+        display: none;
+    }
+
+    .mobile-nav-btn .mnav-icon {
+        font-size: 22px;
+    }
+
+    .mobile-nav {
+        height: 56px;
+    }
+
+    body {
+        padding-bottom: 56px;
     }
 }

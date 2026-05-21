@@ -453,6 +453,50 @@ document.addEventListener('DOMContentLoaded', () => {
         state.airportLayers = [vabbRunway, vanmRunway];
         drawNotamOverlays();
         renderNOTAMs();
+        showUserLocation();
+    }
+
+    // Show user's GPS location on the map with a pulsing marker
+    function showUserLocation() {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+
+            // Pulsing dot icon
+            const youIcon = L.divIcon({
+                className: '',
+                html: `<div class="user-location-marker">
+                          <div class="user-location-dot"></div>
+                          <div class="user-location-ring"></div>
+                       </div>`,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+            });
+
+            const marker = L.marker([lat, lon], { icon: youIcon, zIndexOffset: 2000 })
+                .addTo(state.map)
+                .bindTooltip(`📍 Your Location (±${Math.round(accuracy)}m)`, { className: 'airplane-tooltip', sticky: true });
+
+            // Accuracy circle
+            L.circle([lat, lon], {
+                radius: accuracy,
+                color: 'rgba(255,179,0,0.5)',
+                fillColor: 'rgba(255,179,0,0.06)',
+                fillOpacity: 1,
+                weight: 1,
+                dashArray: '4,6'
+            }).addTo(state.map);
+
+            state.userLocationMarker = marker;
+
+            // Watch position for live updates
+            navigator.geolocation.watchPosition((p) => {
+                marker.setLatLng([p.coords.latitude, p.coords.longitude]);
+            }, null, { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 });
+        }, (err) => {
+            console.warn('📍 Geolocation denied or unavailable:', err.message);
+        }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     }
 
     // Seedable PRNG & Metadata Databases
@@ -1105,38 +1149,56 @@ document.addEventListener('DOMContentLoaded', () => {
         return flights;
     }
 
-    // Load Data
+    // CORS proxy list — tried in order until one succeeds
+    const CORS_PROXIES = [
+        (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://proxy.cors.sh/${url}`
+    ];
+
+    // Load Data — tries multiple CORS proxies, strips stale states
     async function loadData(isInterval = false) {
         let loadedFromApi = false;
-        try {
-            const bbox = "lamin=18.5&lomin=72.4&lamax=19.4&lomax=73.4";
-            const openskyUrl = `https://opensky-network.org/api/states/all?${bbox}`;
-            const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(openskyUrl);
-            
-            console.log("📡 Querying live OpenSky API via CORS proxy...");
-            const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(5000) });
-            if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
-            
-            const data = await response.json();
-            if (data && data.states && data.states.length > 0) {
-                state.flights = parseOpenSkyData(data);
-                loadedFromApi = true;
-                console.log(`✅ Loaded ${state.flights.length} live flight vectors from OpenSky.`);
-            } else {
-                console.warn("⚠️ OpenSky API returned empty states. Falling back to local/simulated feed.");
+        const bbox = 'lamin=18.5&lomin=72.4&lamax=19.4&lomax=73.4';
+        const openskyUrl = `https://opensky-network.org/api/states/all?${bbox}`;
+        const now = Math.floor(Date.now() / 1000); // Unix seconds
+        const STALE_THRESHOLD = 120; // seconds — drop contacts older than 2 min
+
+        for (const buildProxy of CORS_PROXIES) {
+            if (loadedFromApi) break;
+            try {
+                const proxyUrl = buildProxy(openskyUrl);
+                console.log(`📡 Trying proxy: ${proxyUrl.slice(0, 60)}...`);
+                const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                if (data && data.states && data.states.length > 0) {
+                    // Filter out stale contacts (last_contact too old)
+                    const freshStates = data.states.filter(s => {
+                        const lastContact = s[4]; // time_position (Unix)
+                        return lastContact && (now - lastContact) <= STALE_THRESHOLD;
+                    });
+
+                    if (freshStates.length > 0) {
+                        state.flights = parseOpenSkyData({ ...data, states: freshStates });
+                        loadedFromApi = true;
+                        console.log(`✅ ${state.flights.length} fresh targets from OpenSky (${data.states.length - freshStates.length} stale dropped).`);
+                    } else {
+                        console.warn(`⚠️ All ${data.states.length} states are stale (>${STALE_THRESHOLD}s). Trying next proxy...`);
+                    }
+                }
+            } catch (err) {
+                console.warn(`⚠️ Proxy failed: ${err.message}`);
             }
-        } catch (error) {
-            console.warn("⚠️ Failed to load live OpenSky feed. Falling back to local data:", error);
         }
 
-        // Fallback to flights.json if API fetch failed or returned no states
+        // Fallback to flights.json if all proxies failed
         if (!loadedFromApi) {
             try {
-                const response = await fetch('flights.json?nocache=' + new Date().getTime());
-                if (!response.ok) throw new Error('Local flights.json fetch issue');
+                const response = await fetch('flights.json?t=' + Date.now());
+                if (!response.ok) throw new Error('flights.json unavailable');
                 state.flights = await response.json();
-                
-                // Initialize baseline telemetry details for local flights to enable smooth extrapolation
                 state.flights.forEach(f => {
                     f.lastUpdatedTime = Date.now();
                     f.baseLat = f.lat;
@@ -1147,30 +1209,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 console.log(`💾 Loaded ${state.flights.length} flights from flights.json (fallback).`);
             } catch (error) {
-                console.error("❌ Both live feed and local fallback failed:", error);
-                console.log("🔄 Generating client-side simulated flights as absolute fallback...");
+                console.error('❌ Both live feed and local fallback failed:', error);
                 state.flights = generateSimulatedFlights();
             }
         }
 
-        // Calculate initial distance and ETA for all flights
-        state.flights.forEach(f => {
-            updateDistanceAndETA(f);
-        });
-
+        state.flights.forEach(f => updateDistanceAndETA(f));
         updateTimestamp();
         updateFIDSCounts();
         renderFIDSBoards();
         renderRadarMapMarkers();
 
-        // Refresh selected flight telemetry details if panel is open
         if (state.selectedFlightId) {
             const flight = state.flights.find(f => f.icao24 === state.selectedFlightId);
-            if (flight) {
-                updateTelemetryPanel(flight);
-            } else {
-                closeTelemetry();
-            }
+            if (flight) updateTelemetryPanel(flight);
+            else closeTelemetry();
         }
     }
 
@@ -1641,14 +1694,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Wire mobile nav buttons (mirrors desktop tab logic)
+    const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn');
+    mobileNavBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            playBeep(1100, 'sine', 0.04);
+            mobileNavBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const targetTabId = btn.dataset.tab;
+            state.currentTab = targetTabId;
+
+            // Also sync desktop nav
+            elements.tabs.forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === targetTabId);
+            });
+            elements.tabPanels.forEach(panel => {
+                panel.classList.toggle('active', panel.id === targetTabId);
+            });
+
+            if (targetTabId === 'tab-map' && state.map) {
+                setTimeout(() => state.map.invalidateSize(), 80);
+            }
+        });
+    });
+
     // Initialize map, load telemetry data, and start auto-refresh intervals
     initMap();
     loadData();
 
-    // Auto-refresh flights telemetry data every 10 seconds
+    // Auto-refresh flights telemetry data every 15 seconds
     setInterval(() => {
         loadData(true);
-    }, 10000);
+    }, 15000);
 
     // Dynamic position extrapolation animation loop running every 1 second
     setInterval(() => {
