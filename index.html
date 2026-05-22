@@ -159,6 +159,27 @@ h1, h2, h3, h4, h5, h6 {
     padding: 24px;
     z-index: 100;
     flex-shrink: 0;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
+    overflow: hidden;
+}
+
+/* Collapsed Sidebar */
+.sidebar-collapsed .sidebar {
+    width: 0;
+    padding: 24px 0;
+    border-right-color: transparent;
+    pointer-events: none;
+}
+
+.sidebar-collapsed .sidebar > * {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.sidebar > * {
+    transition: opacity 0.3s ease;
 }
 
 .brand {
@@ -302,7 +323,33 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
 }
 
+/* Sidebar Toggle Button styling */
+.sidebar-toggle-btn {
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    color: var(--accent-cyan);
+    font-size: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
 /* App Header */
+
 .app-header {
     height: var(--header-height);
     padding: 0 32px;
@@ -396,11 +443,12 @@ h1, h2, h3, h4, h5, h6 {
 .search-box {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(0, 229, 255, 0.1);
+    background: rgba(2, 5, 18, 0.5);
+    border: 1px solid rgba(0, 229, 255, 0.12);
     border-radius: var(--border-radius-md);
-    padding: 8px 14px;
+    padding: 0 14px;
     width: 380px;
+    height: 36px;
     transition: var(--transition-smooth);
 }
 
@@ -419,9 +467,10 @@ h1, h2, h3, h4, h5, h6 {
     background: transparent;
     border: none;
     color: #ffffff;
-    font-size: 13px;
+    font-size: 12.5px;
     outline: none;
     width: 100%;
+    height: 100%;
 }
 
 .search-box input::placeholder {
@@ -462,22 +511,28 @@ h1, h2, h3, h4, h5, h6 {
 
 .filter-buttons {
     display: flex;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius-sm);
+    align-items: center;
+    background: rgba(2, 5, 18, 0.5);
+    border: 1px solid rgba(0, 229, 255, 0.12);
+    border-radius: var(--border-radius-md);
     padding: 2px;
+    height: 36px;
 }
 
 .filter-btn {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    padding: 4px 12px;
-    font-size: 11px;
+    padding: 0 16px;
+    height: 100%;
+    font-size: 12px;
     font-family: inherit;
     font-weight: 600;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: calc(var(--border-radius-md) - 2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: var(--transition-smooth);
 }
 
@@ -488,7 +543,7 @@ h1, h2, h3, h4, h5, h6 {
 .filter-btn.active {
     background: rgba(0, 229, 255, 0.08);
     color: var(--accent-cyan);
-    border: 1px solid rgba(0, 229, 255, 0.15);
+    box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.05);
 }
 
 /* Tab Panels */
@@ -545,7 +600,7 @@ h1, h2, h3, h4, h5, h6 {
 .map-hud-controls {
     position: absolute;
     top: 16px;
-    right: 16px;
+    left: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -557,21 +612,17 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(10, 20, 40, 0.75);
     border: 1px solid rgba(0, 229, 255, 0.18);
     color: var(--text-secondary);
-    padding: 8px 12px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--border-radius-md);
     cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
     transition: var(--transition-smooth);
     box-shadow: var(--glass-shadow);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
 }
 
 .hud-btn:hover {
@@ -585,7 +636,6 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(0, 230, 118, 0.12);
     border-color: var(--accent-green);
     color: var(--accent-green);
-    text-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
     box-shadow: 0 0 12px rgba(0, 230, 118, 0.2);
 }
 
@@ -593,6 +643,17 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(0, 230, 118, 0.2);
     color: #ffffff;
     border-color: var(--accent-green);
+}
+
+.hud-btn .hud-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hud-btn .hud-label {
+    display: none;
 }
 
 /* Radar Sweeper Overlay */
@@ -1140,6 +1201,57 @@ h1, h2, h3, h4, h5, h6 {
 .status-pill.boarding { background: rgba(255, 255, 255, 0.05); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.1); }
 .status-pill.taxiing { background: rgba(255, 255, 255, 0.03); color: var(--text-secondary); }
 
+/* Fixed Header & Scrollable Body for NOTAMs Table */
+#notams-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+#notams-table thead {
+    display: block;
+    width: 100%;
+}
+#notams-table thead tr {
+    display: flex;
+    width: 100%;
+}
+#notams-table tbody {
+    display: block;
+    max-height: 400px;
+    overflow-y: auto;
+    width: 100%;
+}
+#notams-table tbody tr {
+    display: flex;
+    width: 100%;
+}
+#notams-table th, #notams-table td {
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+#notams-table td.table-empty {
+    width: 100% !important;
+    flex-grow: 1;
+}
+
+/* Column Widths Alignment */
+#notams-table th:nth-child(1), #notams-table td:nth-child(1) { width: 12%; }
+#notams-table th:nth-child(2), #notams-table td:nth-child(2) { width: 12%; }
+#notams-table th:nth-child(3), #notams-table td:nth-child(3) { width: 12%; }
+#notams-table th:nth-child(4), #notams-table td:nth-child(4) { width: 34%; flex-grow: 1; }
+#notams-table th:nth-child(5), #notams-table td:nth-child(5) { width: 14%; }
+#notams-table th:nth-child(6), #notams-table td:nth-child(6) { width: 8%; }
+#notams-table th:nth-child(7), #notams-table td:nth-child(7) { width: 8%; }
+
+@media (max-width: 767px) {
+    /* Reallocate widths on mobile (Category 3rd and Validity 5th are hidden) */
+    #notams-table th:nth-child(1), #notams-table td:nth-child(1) { width: 15%; }
+    #notams-table th:nth-child(2), #notams-table td:nth-child(2) { width: 15%; }
+    #notams-table th:nth-child(4), #notams-table td:nth-child(4) { width: 46%; flex-grow: 1; }
+    #notams-table th:nth-child(6), #notams-table td:nth-child(6) { width: 12%; }
+    #notams-table th:nth-child(7), #notams-table td:nth-child(7) { width: 12%; }
+}
+
 /* Scrollbars */
 ::-webkit-scrollbar {
     width: 6px;
@@ -1250,13 +1362,14 @@ h1, h2, h3, h4, h5, h6 {
 .ac-body svg { display: block; overflow: visible; }
 
 /* Label tag below the aircraft icon */
+/* Label tag below the aircraft icon */
 .ac-label {
     position: absolute;
     top: 38px;
     left: 50%;
-    transform: translateX(-50%);
-    background: rgba(2, 5, 18, 0.93);
-    border: 1px solid rgba(0, 229, 255, 0.30);
+    transform: translateX(-50%) translateY(4px) scale(0.95);
+    background: rgba(2, 5, 18, 0.96);
+    border: 1px solid rgba(0, 229, 255, 0.35);
     border-radius: 4px;
     padding: 2px 7px;
     white-space: nowrap;
@@ -1267,12 +1380,21 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.25;
     box-shadow: 0 2px 8px rgba(0,0,0,0.7);
     z-index: 999;
-    transition: border-color 0.3s;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.3s;
+}
+
+/* Dynamic label visibility rules */
+.map-show-labels .ac-label,
+.ac-marker.ac-selected .ac-label,
+.ac-marker:hover .ac-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
 }
 
 .ac-callsign {
     font-family: 'Outfit', sans-serif;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     color: #fff;
     letter-spacing: 0.06em;
@@ -1280,9 +1402,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .ac-sub {
     font-family: 'Fira Code', monospace;
-    font-size: 7.5px;
+    font-size: 8.5px;
     color: var(--accent-cyan);
     margin-top: 1px;
+    font-weight: 600;
 }
 
 /* Selected state */
@@ -1538,13 +1661,15 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(10, 20, 40, 0.6);
     border: 1px solid var(--glass-border);
     color: var(--accent-cyan);
-    padding: 8px 16px;
+    padding: 0 16px;
+    height: 36px;
+    box-sizing: border-box;
     border-radius: var(--border-radius-md);
     cursor: pointer;
     font-family: 'Fira Code', monospace;
     font-size: 12px;
     font-weight: 600;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     transition: var(--transition-smooth);
@@ -2149,13 +2274,16 @@ input:focus, button:focus {
         <main class="main-content">
             <!-- Header -->
             <header class="app-header">
-                <div class="header-title">
-                    <h2>Live Airspace Tracking & Flight Board</h2>
-                    <p>Real-time ADS-B radar and FIDS updates for Chhatrapati Shivaji Maharaj (VABB) & Navi Mumbai (VANM) • Engineered by Ankit Singh</p>
+                <div style="display: flex; align-items: center; gap: 16px; min-width: 0;">
+                    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Collapse Sidebar">☰</button>
+                    <div class="header-title">
+                        <h2>Live Airspace Tracking & Flight Board</h2>
+                        <p>Real-time ADS-B radar and FIDS updates for Chhatrapati Shivaji Maharaj (VABB) & Navi Mumbai (VANM) • Engineered by Ankit Singh</p>
+                    </div>
                 </div>
                 <div class="header-actions">
-                    <button id="sound-toggle-btn" class="sound-btn" title="Toggle System Sounds">
-                        <span id="sound-icon">🔊</span> AUDIO ON
+                    <button id="sound-toggle-btn" class="sound-btn muted" title="Toggle System Sounds">
+                        <span id="sound-icon">🔇</span> AUDIO OFF
                     </button>
                     <div class="airport-badges">
                         <div class="airport-badge">
@@ -2199,14 +2327,17 @@ input:focus, button:focus {
                         
                         <!-- Floating HUD controls -->
                         <div class="map-hud-controls">
-                            <button id="hud-recenter-btn" class="hud-btn" title="Re-center Airspace (VABB/VANM)">
+                            <button id="hud-recenter-btn" class="hud-btn" title="Center Map">
                                 <span class="hud-icon">🎯</span> <span class="hud-label">Center Map</span>
                             </button>
-                            <button id="hud-trails-btn" class="hud-btn active" title="Toggle Flight Trails">
+                            <button id="hud-trails-btn" class="hud-btn active" title="Trails ON">
                                 <span class="hud-icon">📈</span> <span class="hud-label">Trails ON</span>
                             </button>
-                            <button id="hud-notams-btn" class="hud-btn active" title="Toggle NOTAM Overlays">
+                            <button id="hud-notams-btn" class="hud-btn active" title="NOTAMs ON">
                                 <span class="hud-icon">🚫</span> <span class="hud-label">NOTAMs ON</span>
+                            </button>
+                            <button id="hud-labels-btn" class="hud-btn active" title="Labels ON">
+                                <span class="hud-icon">🏷️</span> <span class="hud-label">Labels ON</span>
                             </button>
                         </div>
                         
@@ -2534,6 +2665,7 @@ const state = {
     },
     globalTrailsEnabled: true,
     notamOverlaysVisible: true,
+    globalLabelsEnabled: true,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2678,6 +2810,7 @@ const el = {
     detailDistRem:     document.getElementById('detail-dist-rem'),
     detailEta:         document.getElementById('detail-eta'),
     soundToggleBtn:    document.getElementById('sound-toggle-btn'),
+    sidebarToggleBtn:  document.getElementById('sidebar-toggle-btn'),
     soundIcon:         document.getElementById('sound-icon'),
     notamsTableBody:   document.querySelector('#notams-table tbody'),
     detailPhotoImg:    document.getElementById('detail-photo-img'),
@@ -2966,7 +3099,7 @@ function modelInfo(type) { return MODEL_DB[type?.toUpperCase()] || { full: type|
 // ═══════════════════════════════════════════════════════════════════════════
 // NOTAMS DATABASE
 // ═══════════════════════════════════════════════════════════════════════════
-const NOTAMS = [
+const DEFAULT_NOTAMS = [
     { id:'A0421/26', airport:'VABB', category:'RUNWAY', severity:'CRITICAL',
       desc:'CSMIA RWY 09/27 CLOSED — re-carpeting & joint repair. All ops via RWY 14/32.',
       validity:'2026-05-15 to 2026-06-15', type:'circle', coordinates:[19.0896,72.8656], radius:900 },
@@ -2987,7 +3120,108 @@ const NOTAMS = [
     { id:'C0156/26', airport:'VANM', category:'NAVAID', severity:'INFO',
       desc:'VANM DVOR (VNM 115.3 MHz) in test mode — minor anomalies possible.',
       validity:'2026-05-21 to 2026-05-25', type:'circle', coordinates:[18.9950,73.0720], radius:1200 },
+    { id:'A1032/26', airport:'VABB', category:'NAVAID', severity:'WARNING',
+      desc:'ILS RWY 27 GP out of service due to maintenance. Category II/III approaches suspended.',
+      validity:'2026-05-22 to 2026-05-29', type:'circle', coordinates:[19.088,72.868], radius:1000 },
+    { id:'A1211/26', airport:'VANM', category:'HAZARD', severity:'CRITICAL',
+      desc:'Tall crane erected at Runway 08 approach zone (Height 120ft AGL, Obstacle lighted).',
+      validity:'2026-05-18 to 2026-06-18', type:'circle', coordinates:[18.985,73.045], radius:1500 }
 ];
+let NOTAMS = [...DEFAULT_NOTAMS];
+
+// Heuristic parsers for live NOTAMs mapping
+function parseCategory(text) {
+    const t = text.toUpperCase();
+    if (t.includes('RWY') || t.includes('RUNWAY')) return 'RUNWAY';
+    if (t.includes('TWY') || t.includes('TAXIWAY')) return 'TAXIWAY';
+    if (t.includes('OBST') || t.includes('HAZARD') || t.includes('BIRD') || t.includes('WINDMILL') || t.includes('TALL CRANE')) return 'HAZARD';
+    if (t.includes('FIR') || t.includes('AIRSPACE') || t.includes('TFR') || t.includes('PROHIBITED') || t.includes('RESTRICTED')) return 'AIRSPACE';
+    if (t.includes('VOR') || t.includes('ILS') || t.includes('DME') || t.includes('GPS') || t.includes('NAVAID') || t.includes('NDB')) return 'NAVAID';
+    if (t.includes('MILITARY') || t.includes('FIRING') || t.includes('NAVY') || t.includes('AIR FORCE')) return 'MILITARY';
+    return 'GENERAL';
+}
+
+function parseSeverity(text) {
+    const t = text.toUpperCase();
+    if (t.includes('CLOSED') || t.includes('PROHIBITED') || t.includes('CRITICAL') || t.includes('HAZARD') || t.includes('SHUTDOWN') || t.includes('FAIL')) {
+        return 'CRITICAL';
+    }
+    if (t.includes('CLOSED') || t.includes('TFR') || t.includes('RESTRICTED') || t.includes('WARNING') || t.includes('OUT OF SERVICE') || t.includes('UAV') || t.includes('DRONE')) {
+        return 'WARNING';
+    }
+    return 'INFO';
+}
+
+function formatValidity(start, end) {
+    if (!start || !end) {
+        const d1 = new Date();
+        const d2 = new Date();
+        d2.setMonth(d2.getMonth() + 1);
+        return `${d1.toISOString().split('T')[0]} to ${d2.toISOString().split('T')[0]}`;
+    }
+    try {
+        return `${new Date(start).toISOString().split('T')[0]} to ${new Date(end).toISOString().split('T')[0]}`;
+    } catch(e) {
+        return '2026-05-22 to 2026-06-22';
+    }
+}
+
+function getRandomCoordsForAirport(airport, index) {
+    const center = airport.toUpperCase() === 'VANM' ? [18.9919, 73.0617] : [19.0896, 72.8656];
+    const angle = (index * 60) * Math.PI / 180;
+    const distance = 0.008 + (index * 0.003); // spread offset
+    return [
+        center[0] + Math.sin(angle) * distance,
+        center[1] + Math.cos(angle) * distance
+    ];
+}
+
+async function fetchLiveNOTAMs() {
+    let success = false;
+    let list = [];
+    
+    try {
+        const targetUrl = 'https://notams.online/api/notams?icao=VABB';
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(5000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        
+        if (data && data.contents) {
+            const parsed = JSON.parse(data.contents);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                list = parsed.slice(0, 15).map((item, idx) => {
+                    const icao = item.icao || 'VABB';
+                    return {
+                        id: item.notam_id || item.id || `A${String(idx+1).padStart(4,'0')}/26`,
+                        airport: icao,
+                        category: parseCategory(item.text || item.message || ''),
+                        severity: parseSeverity(item.text || item.message || ''),
+                        desc: item.text || item.message || 'No description provided.',
+                        validity: formatValidity(item.start_date || item.start, item.end_date || item.end),
+                        type: 'circle',
+                        coordinates: getRandomCoordsForAirport(icao, idx),
+                        radius: 800
+                    };
+                });
+                success = true;
+                console.log('Successfully fetched live NOTAMs via proxy.');
+            }
+        }
+    } catch (e) {
+        console.warn('Live NOTAM fetch failed or was blocked. Loading local database fallback:', e.message);
+    }
+    
+    if (!success) {
+        list = [...DEFAULT_NOTAMS];
+    }
+    
+    NOTAMS.length = 0;
+    list.forEach(n => NOTAMS.push(n));
+    
+    drawNotamOverlays();
+    renderNOTAMs();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MAP INIT
@@ -3026,10 +3260,24 @@ function initMap() {
     state.map.zoomControl.setPosition('bottomright');
     state.map.attributionControl.setPrefix('');
 
+    // Update labels initially and on zoom
+    state.map.on('zoomend', updateLabelVisibility);
+    updateLabelVisibility();
+
     drawAirportMarkers();
     drawNotamOverlays();
     renderNOTAMs();
+    fetchLiveNOTAMs();
     showUserLocation();
+}
+
+function updateLabelVisibility() {
+    if (!state.map) return;
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    const zoom = state.map.getZoom();
+    const shouldShow = state.globalLabelsEnabled && zoom >= 12;
+    mapEl.classList.toggle('map-show-labels', shouldShow);
 }
 
 // Airport markers with runway indicator
@@ -4184,6 +4432,7 @@ document.querySelectorAll('.sortable').forEach(th => {
 const hudRecenterBtn = document.getElementById('hud-recenter-btn');
 const hudTrailsBtn = document.getElementById('hud-trails-btn');
 const hudNotamsBtn = document.getElementById('hud-notams-btn');
+const hudLabelsBtn = document.getElementById('hud-labels-btn');
 
 hudRecenterBtn?.addEventListener('click', () => {
     playBeep(1000, 'sine', 0.04);
@@ -4196,9 +4445,11 @@ hudTrailsBtn?.addEventListener('click', () => {
     playBeep(1000, 'sine', 0.04);
     state.globalTrailsEnabled = !state.globalTrailsEnabled;
     hudTrailsBtn.classList.toggle('active', state.globalTrailsEnabled);
+    const textVal = state.globalTrailsEnabled ? 'Trails ON' : 'Trails OFF';
+    hudTrailsBtn.title = textVal;
     const label = hudTrailsBtn.querySelector('.hud-label');
     if (label) {
-        label.textContent = state.globalTrailsEnabled ? 'Trails ON' : 'Trails OFF';
+        label.textContent = textVal;
     }
     renderMarkers();
 });
@@ -4207,11 +4458,26 @@ hudNotamsBtn?.addEventListener('click', () => {
     playBeep(1000, 'sine', 0.04);
     state.notamOverlaysVisible = !state.notamOverlaysVisible;
     hudNotamsBtn.classList.toggle('active', state.notamOverlaysVisible);
+    const textVal = state.notamOverlaysVisible ? 'NOTAMs ON' : 'NOTAMs OFF';
+    hudNotamsBtn.title = textVal;
     const label = hudNotamsBtn.querySelector('.hud-label');
     if (label) {
-        label.textContent = state.notamOverlaysVisible ? 'NOTAMs ON' : 'NOTAMs OFF';
+        label.textContent = textVal;
     }
     drawNotamOverlays();
+});
+
+hudLabelsBtn?.addEventListener('click', () => {
+    playBeep(1000, 'sine', 0.04);
+    state.globalLabelsEnabled = !state.globalLabelsEnabled;
+    hudLabelsBtn.classList.toggle('active', state.globalLabelsEnabled);
+    const textVal = state.globalLabelsEnabled ? 'Labels ON' : 'Labels OFF';
+    hudLabelsBtn.title = textVal;
+    const label = hudLabelsBtn.querySelector('.hud-label');
+    if (label) {
+        label.textContent = textVal;
+    }
+    updateLabelVisibility();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4260,8 +4526,21 @@ el.closeTelemetryBtn?.addEventListener('click', closeTelemetry);
 
 el.soundToggleBtn?.addEventListener('click',()=>{
     state.soundEnabled=!state.soundEnabled;
+    el.soundToggleBtn.classList.toggle('muted', !state.soundEnabled);
     el.soundToggleBtn.innerHTML=`<span id="sound-icon">${state.soundEnabled?'🔊':'🔇'}</span> AUDIO ${state.soundEnabled?'ON':'OFF'}`;
     if(state.soundEnabled) playBeep(900,'sine',0.08);
+});
+
+el.sidebarToggleBtn?.addEventListener('click', () => {
+    playBeep(1050, 'sine', 0.04);
+    const layout = document.querySelector('.app-layout');
+    const isCollapsed = layout.classList.toggle('sidebar-collapsed');
+    el.sidebarToggleBtn.title = isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar';
+    if (state.map) {
+        setTimeout(() => {
+            state.map.invalidateSize({ animate: true });
+        }, 320);
+    }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
