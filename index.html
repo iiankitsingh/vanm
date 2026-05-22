@@ -3159,10 +3159,27 @@ function formatValidity(start, end) {
         d2.setMonth(d2.getMonth() + 1);
         return `${d1.toISOString().split('T')[0]} to ${d2.toISOString().split('T')[0]}`;
     }
+    
+    function parseDateString(str) {
+        let normalized = str.trim();
+        const parts = normalized.split(' ');
+        if (parts.length === 2) {
+            const timePart = parts[1];
+            if (timePart.length === 4 && !timePart.includes(':')) {
+                normalized = `${parts[0]} ${timePart.substring(0, 2)}:${timePart.substring(2, 4)}`;
+            }
+        }
+        return new Date(normalized);
+    }
+    
     try {
-        return `${new Date(start).toISOString().split('T')[0]} to ${new Date(end).toISOString().split('T')[0]}`;
+        const d1 = parseDateString(start);
+        const d2 = parseDateString(end);
+        const d1Str = isNaN(d1.getTime()) ? start : d1.toISOString().split('T')[0];
+        const d2Str = isNaN(d2.getTime()) ? end : d2.toISOString().split('T')[0];
+        return `${d1Str} to ${d2Str}`;
     } catch(e) {
-        return '2026-05-22 to 2026-06-22';
+        return `${start} to ${end}`;
     }
 }
 
@@ -3176,28 +3193,74 @@ function getRandomCoordsForAirport(airport, index) {
     ];
 }
 
+function decrypt(base64Data, key) {
+    try {
+        const raw = atob(base64Data.trim());
+        return Array.from(raw).map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i % key.length))).join('');
+    } catch (e) {
+        console.error("XOR decryption failed:", e);
+        return null;
+    }
+}
+
+function extractNotamDescription(text) {
+    if (!text) return 'No description provided.';
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const match = normalized.match(/(?:\n|^)\s*E\)\s*([\s\S]*?)(?=\n\s*[F-Z]\)|$)/i);
+    if (match && match[1]) {
+        return match[1].trim();
+    }
+    return text.trim();
+}
+
 async function fetchLiveNOTAMs() {
     let success = false;
     let list = [];
+    const XOR_KEY = 'NotamViewer@1.0.0-OZ_2026!#';
     
     try {
         const icaos = ['VABB', 'VANM'];
         const fetchPromises = icaos.map(async (icao) => {
+            const targetUrl = `https://notams.online/api/notams.php?location=${icao}`;
+            let encryptedData = null;
+            
+            // Try direct fetch first
             try {
-                const targetUrl = `https://notams.online/api/notams?icao=${icao}`;
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-                const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(5000) });
-                if (!res.ok) return [];
-                const data = await res.json();
-                if (data && data.contents) {
-                    const parsed = JSON.parse(data.contents);
-                    if (Array.isArray(parsed)) {
-                        // Tag each item with the ICAO code if not already present
-                        return parsed.map(item => ({ ...item, icao }));
+                const res = await fetch(targetUrl, { signal: AbortSignal.timeout(5000) });
+                if (res.ok) {
+                    const text = await res.text();
+                    if (text && text.trim().length > 0) {
+                        encryptedData = text.trim();
                     }
                 }
             } catch (e) {
-                console.warn(`Fetch for ${icao} failed:`, e.message);
+                console.warn(`Direct NOTAM fetch for ${icao} failed:`, e.message);
+            }
+            
+            // Try AllOrigins proxy fallback if direct fetch failed
+            if (!encryptedData) {
+                try {
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json && json.contents && json.contents.trim().length > 0) {
+                            encryptedData = json.contents.trim();
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Proxy NOTAM fetch for ${icao} failed:`, e.message);
+                }
+            }
+            
+            if (encryptedData) {
+                const decrypted = decrypt(encryptedData, XOR_KEY);
+                if (decrypted) {
+                    const parsed = JSON.parse(decrypted);
+                    if (parsed && parsed.success && Array.isArray(parsed.notams)) {
+                        return parsed.notams;
+                    }
+                }
             }
             return [];
         });
@@ -3206,22 +3269,24 @@ async function fetchLiveNOTAMs() {
         const mergedRaw = results.flat();
         
         if (mergedRaw.length > 0) {
-            list = mergedRaw.slice(0, 20).map((item, idx) => {
-                const icao = item.icao || 'VABB';
+            list = mergedRaw.map((item, idx) => {
+                const icao = item.location || 'VABB';
+                const rawText = item.text || item.icaoMessage || '';
+                const cleanDesc = extractNotamDescription(rawText);
                 return {
-                    id: item.notam_id || item.id || `A${String(idx+1).padStart(4,'0')}/26`,
+                    id: item.number || item.id || `A${String(idx+1).padStart(4,'0')}/26`,
                     airport: icao,
-                    category: parseCategory(item.text || item.message || ''),
-                    severity: parseSeverity(item.text || item.message || ''),
-                    desc: item.text || item.message || 'No description provided.',
-                    validity: formatValidity(item.start_date || item.start, item.end_date || item.end),
+                    category: parseCategory(rawText),
+                    severity: parseSeverity(rawText),
+                    desc: cleanDesc,
+                    validity: formatValidity(item.startDate || item.start_date || item.start, item.endDate || item.end_date || item.end),
                     type: 'circle',
                     coordinates: getRandomCoordsForAirport(icao, idx),
                     radius: 800
                 };
             });
             success = true;
-            console.log(`Successfully fetched ${list.length} live NOTAMs via proxy.`);
+            console.log(`Successfully fetched and decrypted ${list.length} live NOTAMs.`);
         }
     } catch (e) {
         console.warn('Live NOTAM fetch failed. Loading local database fallback:', e.message);
