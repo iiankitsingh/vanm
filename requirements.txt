@@ -1,1 +1,0 @@
-# Standard library urllib.request is used for API requests. No third-party dependencies required.
