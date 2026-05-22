@@ -3181,35 +3181,50 @@ async function fetchLiveNOTAMs() {
     let list = [];
     
     try {
-        const targetUrl = 'https://notams.online/api/notams?icao=VABB';
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(5000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        
-        if (data && data.contents) {
-            const parsed = JSON.parse(data.contents);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                list = parsed.slice(0, 15).map((item, idx) => {
-                    const icao = item.icao || 'VABB';
-                    return {
-                        id: item.notam_id || item.id || `A${String(idx+1).padStart(4,'0')}/26`,
-                        airport: icao,
-                        category: parseCategory(item.text || item.message || ''),
-                        severity: parseSeverity(item.text || item.message || ''),
-                        desc: item.text || item.message || 'No description provided.',
-                        validity: formatValidity(item.start_date || item.start, item.end_date || item.end),
-                        type: 'circle',
-                        coordinates: getRandomCoordsForAirport(icao, idx),
-                        radius: 800
-                    };
-                });
-                success = true;
-                console.log('Successfully fetched live NOTAMs via proxy.');
+        const icaos = ['VABB', 'VANM'];
+        const fetchPromises = icaos.map(async (icao) => {
+            try {
+                const targetUrl = `https://notams.online/api/notams?icao=${icao}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(5000) });
+                if (!res.ok) return [];
+                const data = await res.json();
+                if (data && data.contents) {
+                    const parsed = JSON.parse(data.contents);
+                    if (Array.isArray(parsed)) {
+                        // Tag each item with the ICAO code if not already present
+                        return parsed.map(item => ({ ...item, icao }));
+                    }
+                }
+            } catch (e) {
+                console.warn(`Fetch for ${icao} failed:`, e.message);
             }
+            return [];
+        });
+        
+        const results = await Promise.all(fetchPromises);
+        const mergedRaw = results.flat();
+        
+        if (mergedRaw.length > 0) {
+            list = mergedRaw.slice(0, 20).map((item, idx) => {
+                const icao = item.icao || 'VABB';
+                return {
+                    id: item.notam_id || item.id || `A${String(idx+1).padStart(4,'0')}/26`,
+                    airport: icao,
+                    category: parseCategory(item.text || item.message || ''),
+                    severity: parseSeverity(item.text || item.message || ''),
+                    desc: item.text || item.message || 'No description provided.',
+                    validity: formatValidity(item.start_date || item.start, item.end_date || item.end),
+                    type: 'circle',
+                    coordinates: getRandomCoordsForAirport(icao, idx),
+                    radius: 800
+                };
+            });
+            success = true;
+            console.log(`Successfully fetched ${list.length} live NOTAMs via proxy.`);
         }
     } catch (e) {
-        console.warn('Live NOTAM fetch failed or was blocked. Loading local database fallback:', e.message);
+        console.warn('Live NOTAM fetch failed. Loading local database fallback:', e.message);
     }
     
     if (!success) {
