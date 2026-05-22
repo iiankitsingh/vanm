@@ -90,6 +90,7 @@
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
                     <input type="text" id="flight-search-input" placeholder="Search by flight callsign, airline, or destination...">
+                    <button id="search-clear-btn" class="search-clear hidden" title="Clear Search">&times;</button>
                 </div>
                 <div class="airport-filter">
                     <label>Filter Airport:</label>
@@ -110,11 +111,26 @@
                         <div class="radar-sweep-overlay">
                             <div class="radar-sweep-line"></div>
                         </div>
+                        
+                        <!-- Floating HUD controls -->
+                        <div class="map-hud-controls">
+                            <button id="hud-recenter-btn" class="hud-btn" title="Re-center Airspace (VABB/VANM)">
+                                <span class="hud-icon">🎯</span> <span class="hud-label">Center Map</span>
+                            </button>
+                            <button id="hud-trails-btn" class="hud-btn active" title="Toggle Flight Trails">
+                                <span class="hud-icon">📈</span> <span class="hud-label">Trails ON</span>
+                            </button>
+                            <button id="hud-notams-btn" class="hud-btn active" title="Toggle NOTAM Overlays">
+                                <span class="hud-icon">🚫</span> <span class="hud-label">NOTAMs ON</span>
+                            </button>
+                        </div>
+                        
                         <div id="map"></div>
                     </section>
 
                     <!-- Telemetry Details Panel -->
                     <section class="panel detail-panel glassmorphism hidden" id="detail-viewer">
+                        <div class="drawer-handle"></div>
                         <div class="detail-header">
                             <div class="detail-priority">
                                 <span class="badge" id="detail-status-badge">EN ROUTE</span>
@@ -254,12 +270,12 @@
                         <table class="fids-table" id="arrivals-table">
                             <thead>
                                 <tr>
-                                    <th>Flight</th>
-                                    <th>Airline</th>
-                                    <th>Origin</th>
-                                    <th>Altitude</th>
-                                    <th>Speed</th>
-                                    <th>Status</th>
+                                    <th class="sortable" data-sort="callsign" data-board="arrivals">Flight <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="airline" data-board="arrivals">Airline <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="origin" data-board="arrivals">Origin <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="altitude" data-board="arrivals">Altitude <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="speed" data-board="arrivals">Speed <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="status" data-board="arrivals">Status <span class="sort-icon"></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -284,12 +300,12 @@
                         <table class="fids-table" id="departures-table">
                             <thead>
                                 <tr>
-                                    <th>Flight</th>
-                                    <th>Airline</th>
-                                    <th>Destination</th>
-                                    <th>Altitude</th>
-                                    <th>Speed</th>
-                                    <th>Status</th>
+                                    <th class="sortable" data-sort="callsign" data-board="departures">Flight <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="airline" data-board="departures">Airline <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="destination" data-board="departures">Destination <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="altitude" data-board="departures">Altitude <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="speed" data-board="departures">Speed <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="status" data-board="departures">Status <span class="sort-icon"></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -314,12 +330,12 @@
                         <table class="fids-table" id="ground-table">
                             <thead>
                                 <tr>
-                                    <th>Flight</th>
-                                    <th>Airline</th>
-                                    <th>Aircraft</th>
-                                    <th>Origin/Dest</th>
-                                    <th>Gate/Apron</th>
-                                    <th>Status</th>
+                                    <th class="sortable" data-sort="callsign" data-board="ground">Flight <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="airline" data-board="ground">Airline <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="model" data-board="ground">Aircraft <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="destination" data-board="ground">Origin/Dest <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="gate" data-board="ground">Gate/Apron <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="status" data-board="ground">Status <span class="sort-icon"></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -344,12 +360,12 @@
                         <table class="fids-table" id="notams-table">
                             <thead>
                                 <tr>
-                                    <th>NOTAM ID</th>
-                                    <th>Airport / Sector</th>
-                                    <th>Category</th>
+                                    <th class="sortable" data-sort="id" data-board="notams">NOTAM ID <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="airport" data-board="notams">Airport / Sector <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="category" data-board="notams">Category <span class="sort-icon"></span></th>
                                     <th>Description</th>
-                                    <th>Validity</th>
-                                    <th>Severity</th>
+                                    <th class="sortable" data-sort="validity" data-board="notams">Validity <span class="sort-icon"></span></th>
+                                    <th class="sortable" data-sort="severity" data-board="notams">Severity <span class="sort-icon"></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -366,7 +382,7 @@
     </div>
 
     <!-- Mobile Bottom Navigation Bar -->
-    <nav class="mobile-nav" id="mobile-nav" style="display:none;">
+    <nav class="mobile-nav" id="mobile-nav">
         <button class="mobile-nav-btn active" data-tab="tab-map" id="mnav-map">
             <span class="mnav-icon">🗺️</span>
             <span class="mnav-label">Radar</span>

@@ -29,6 +29,14 @@ const state = {
     dataSource: '—',
     lastRefresh: null,
     refreshInterval: null,
+    sort: {
+        arrivals: { column: null, order: 'asc' },
+        departures: { column: null, order: 'asc' },
+        ground: { column: null, order: 'asc' },
+        notams: { column: null, order: 'asc' }
+    },
+    globalTrailsEnabled: true,
+    notamOverlaysVisible: true,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -594,6 +602,7 @@ function severityColor(s) {
 function drawNotamOverlays() {
     Object.values(state.notamLayers).forEach(l=>state.map.removeLayer(l));
     state.notamLayers={};
+    if (!state.notamOverlaysVisible) return;
     NOTAMS.forEach(n=>{
         const c=severityColor(n.severity);
         let layer;
@@ -609,6 +618,18 @@ function selectNotam(id, zoom=true) {
     state.selectedNotamId=id;
     const n=NOTAMS.find(x=>x.id===id);
     if (!n) return;
+    
+    // Automatically force-enable overlays if they are disabled so the user can see what they clicked
+    if (!state.notamOverlaysVisible) {
+        state.notamOverlaysVisible = true;
+        const notamsBtn = document.getElementById('hud-notams-btn');
+        if (notamsBtn) {
+            notamsBtn.classList.add('active');
+            notamsBtn.innerHTML = `<span class="hud-icon">🚫</span> <span class="hud-label">NOTAMs ON</span>`;
+        }
+        drawNotamOverlays();
+    }
+    
     const c=severityColor(n.severity);
     NOTAMS.forEach(x=>{
         const l=state.notamLayers[x.id]; if(!l)return;
@@ -628,8 +649,14 @@ function selectNotam(id, zoom=true) {
 
 function renderNOTAMs() {
     if (!el.notamsTableBody) return;
-    el.notamsCount.textContent=`${NOTAMS.length} Active NOTAMs`;
-    el.notamsTableBody.innerHTML=NOTAMS.map(n=>`
+    
+    let notams = [...NOTAMS];
+    if (state.sort.notams.column) {
+        notams = sortItems(notams, state.sort.notams.column, state.sort.notams.order, true);
+    }
+    
+    el.notamsCount.textContent=`${notams.length} Active NOTAMs`;
+    el.notamsTableBody.innerHTML=notams.map(n=>`
         <tr class="notam-row ${state.selectedNotamId===n.id?'selected-row':''}" data-id="${n.id}">
             <td><strong style="font-family:'Fira Code',monospace;color:var(--accent-cyan)">${n.id}</strong></td>
             <td><strong style="color:#fff">${n.airport}</strong></td>
@@ -639,11 +666,12 @@ function renderNOTAMs() {
             <td><span class="severity-badge ${n.severity.toLowerCase()}">${n.severity}</span></td>
             <td><button class="show-notam-btn" data-id="${n.id}">Show on Map</button></td>
         </tr>`).join('');
+        
     el.notamsTableBody.querySelectorAll('.notam-row').forEach(r=>{
-        r.addEventListener('click',e=>{if(!e.target.classList.contains('show-notam-btn'))selectNotam(r.dataset.id,false);});
-    });
-    el.notamsTableBody.querySelectorAll('.show-notam-btn').forEach(b=>{
-        b.addEventListener('click',e=>{e.stopPropagation();el.tabs[0].click();selectNotam(b.dataset.id,true);});
+        r.addEventListener('click', () => {
+            switchTab('tab-map');
+            selectNotam(r.dataset.id, true);
+        });
     });
 }
 
@@ -1189,9 +1217,12 @@ function renderFIDSBoards() {
     const trackBtn=(icao)=>`<button class="track-btn" data-icao="${icao}">Track</button>`;
     const selClass=(f)=>state.selectedFlightId===f.icao24?'selected-row':'';
 
-    const arrs = flt.filter(f=>f.type==='arrival');
+    let arrs = flt.filter(f=>f.type==='arrival');
+    if (state.sort.arrivals.column) {
+        arrs = sortItems(arrs, state.sort.arrivals.column, state.sort.arrivals.order, false);
+    }
     el.arrivalsTableBody.innerHTML = arrs.length
-        ? arrs.map(f=>`<tr class="${selClass(f)}">
+        ? arrs.map(f=>`<tr class="${selClass(f)}" data-icao="${f.icao24}">
             <td><strong>${f.callsign}</strong></td>
             <td>${logoImg(f)} ${f.airline}</td>
             <td>${f.origin_iata||f.origin||'—'}</td>
@@ -1201,9 +1232,12 @@ function renderFIDSBoards() {
             <td>${trackBtn(f.icao24)}</td></tr>`).join('')
         : `<tr><td colspan="7" class="table-empty">No active arrivals.</td></tr>`;
 
-    const deps = flt.filter(f=>f.type==='departure');
+    let deps = flt.filter(f=>f.type==='departure');
+    if (state.sort.departures.column) {
+        deps = sortItems(deps, state.sort.departures.column, state.sort.departures.order, false);
+    }
     el.departuresTableBody.innerHTML = deps.length
-        ? deps.map(f=>`<tr class="${selClass(f)}">
+        ? deps.map(f=>`<tr class="${selClass(f)}" data-icao="${f.icao24}">
             <td><strong>${f.callsign}</strong></td>
             <td>${logoImg(f)} ${f.airline}</td>
             <td>${f.destination_iata||f.destination||'—'}</td>
@@ -1213,9 +1247,12 @@ function renderFIDSBoards() {
             <td>${trackBtn(f.icao24)}</td></tr>`).join('')
         : `<tr><td colspan="7" class="table-empty">No active departures.</td></tr>`;
 
-    const gnd = flt.filter(f=>f.type==='on_ground');
+    let gnd = flt.filter(f=>f.type==='on_ground');
+    if (state.sort.ground.column) {
+        gnd = sortItems(gnd, state.sort.ground.column, state.sort.ground.order, false);
+    }
     el.groundTableBody.innerHTML = gnd.length
-        ? gnd.map(f=>`<tr class="${selClass(f)}">
+        ? gnd.map(f=>`<tr class="${selClass(f)}" data-icao="${f.icao24}">
             <td><strong>${f.callsign}</strong></td>
             <td>${logoImg(f)} ${f.airline}</td>
             <td>${f.model||'—'}</td>
@@ -1224,14 +1261,6 @@ function renderFIDSBoards() {
             <td>${pill(f.status)}</td>
             <td>${trackBtn(f.icao24)}</td></tr>`).join('')
         : `<tr><td colspan="7" class="table-empty">No aircraft on ground.</td></tr>`;
-
-    // Track button listeners
-    document.querySelectorAll('.track-btn').forEach(btn=>{
-        btn.addEventListener('click',()=>{
-            const f=state.flights.find(f=>f.icao24===btn.dataset.icao);
-            if(f) selectFlight(f);
-        });
-    });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1241,6 +1270,55 @@ const fmt = {
     alt: a => a>0 ? `${a.toLocaleString()} ft` : 'Ground',
     spd: s => s>0 ? `${s} kts` : '0 kts',
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SORTING HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function getSortVal(item, key, isNotam) {
+    if (isNotam) {
+        if (key === 'severity') {
+            const weights = { 'CRITICAL': 3, 'WARNING': 2, 'INFO': 1 };
+            return weights[item.severity] || 0;
+        }
+        return item[key] || '';
+    } else {
+        if (key === 'origin') return item.origin_iata || item.origin || '';
+        if (key === 'destination') return item.destination_iata || item.destination || '';
+        if (key === 'gate') return item.gate || 'APRON';
+        return item[key] !== undefined ? item[key] : '';
+    }
+}
+
+function sortItems(items, key, order, isNotam = false) {
+    return [...items].sort((a, b) => {
+        let valA = getSortVal(a, key, isNotam);
+        let valB = getSortVal(b, key, isNotam);
+        
+        if (typeof valA === 'string' && typeof valB === 'string') {
+            return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+            if (valA < valB) return order === 'asc' ? -1 : 1;
+            if (valA > valB) return order === 'asc' ? 1 : -1;
+            return 0;
+        }
+    });
+}
+
+function updateSortIcons() {
+    document.querySelectorAll('.sortable').forEach(th => {
+        const board = th.dataset.board;
+        const col = th.dataset.sort;
+        const icon = th.querySelector('.sort-icon');
+        if (!icon) return;
+        
+        const activeSort = state.sort[board];
+        if (activeSort.column === col) {
+            icon.textContent = activeSort.order === 'asc' ? ' ▲' : ' ▼';
+        } else {
+            icon.textContent = ' ↕';
+        }
+    });
+}
 
 function updateTimestamp() {
     const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -1292,28 +1370,196 @@ el.tabs.forEach(t=>t.addEventListener('click',()=>{ playBeep(1100,'sine',0.04); 
 document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.addEventListener('click',()=>{ playBeep(1100,'sine',0.04); switchTab(b.dataset.tab); }));
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SEARCH & FILTER
+// SEARCH, FILTER & QUICK BADGES
 // ═══════════════════════════════════════════════════════════════════════════
-el.searchInput?.addEventListener('input', e=>{
-    state.searchQuery = e.target.value;
-    updateFIDSCounts(); renderFIDSBoards(); renderMarkers();
+function setAirportFilter(filter) {
+    state.airportFilter = filter;
+    
+    // Update toolbar filter buttons
+    el.filterButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.airport === filter);
+    });
+    
+    // Update header badges
+    document.querySelectorAll('.airport-badge').forEach(badge => {
+        const icaoEl = badge.querySelector('.badge-icao');
+        const icao = icaoEl ? icaoEl.textContent.trim() : '';
+        badge.classList.toggle('active-filter', icao === filter);
+    });
+    
+    updateFIDSCounts();
+    renderFIDSBoards();
+    renderMarkers();
+}
+
+el.filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        playBeep(950, 'sine', 0.04);
+        setAirportFilter(btn.dataset.airport);
+    });
 });
-el.filterButtons.forEach(btn=>btn.addEventListener('click',()=>{
-    playBeep(950,'sine',0.04);
-    el.filterButtons.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    state.airportFilter = btn.dataset.airport;
-    updateFIDSCounts(); renderFIDSBoards(); renderMarkers();
-}));
+
+document.querySelectorAll('.airport-badge').forEach(badge => {
+    badge.addEventListener('click', () => {
+        playBeep(950, 'sine', 0.04);
+        const icaoEl = badge.querySelector('.badge-icao');
+        const icao = icaoEl ? icaoEl.textContent.trim() : '';
+        if (state.airportFilter === icao) {
+            setAirportFilter('all');
+        } else {
+            setAirportFilter(icao);
+        }
+    });
+});
+
+const searchClearBtn = document.getElementById('search-clear-btn');
+function handleSearchInput(val) {
+    state.searchQuery = val;
+    if (el.searchInput) {
+        el.searchInput.value = val;
+    }
+    if (searchClearBtn) {
+        searchClearBtn.classList.toggle('hidden', !val);
+    }
+    updateFIDSCounts();
+    renderFIDSBoards();
+    renderMarkers();
+}
+
+el.searchInput?.addEventListener('input', e => {
+    handleSearchInput(e.target.value);
+});
+
+searchClearBtn?.addEventListener('click', () => {
+    playBeep(1000, 'sine', 0.04);
+    handleSearchInput('');
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CLOSE TELEMETRY
+// COLUMN SORTING
+// ═══════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+        playBeep(1000, 'sine', 0.04);
+        const board = th.dataset.board;
+        const col = th.dataset.sort;
+        if (!board || !col) return;
+        
+        const activeSort = state.sort[board];
+        if (activeSort.column === col) {
+            activeSort.order = activeSort.order === 'asc' ? 'desc' : 'asc';
+        } else {
+            activeSort.column = col;
+            activeSort.order = 'asc';
+        }
+        
+        updateSortIcons();
+        if (board === 'notams') {
+            renderNOTAMs();
+        } else {
+            renderFIDSBoards();
+        }
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TABLE ROW EVENT DELEGATION
+// ═══════════════════════════════════════════════════════════════════════════
+[el.arrivalsTableBody, el.departuresTableBody, el.groundTableBody].forEach(body => {
+    body?.addEventListener('click', e => {
+        const row = e.target.closest('tr[data-icao]');
+        if (!row) return;
+        
+        const icao = row.dataset.icao;
+        if (!icao) return;
+        
+        const flight = state.flights.find(f => f.icao24 === icao);
+        if (flight) {
+            selectFlight(flight);
+        }
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAP HUD TOOLBAR
+// ═══════════════════════════════════════════════════════════════════════════
+const hudRecenterBtn = document.getElementById('hud-recenter-btn');
+const hudTrailsBtn = document.getElementById('hud-trails-btn');
+const hudNotamsBtn = document.getElementById('hud-notams-btn');
+
+hudRecenterBtn?.addEventListener('click', () => {
+    playBeep(1000, 'sine', 0.04);
+    if (state.map) {
+        state.map.setView(state.mapCenter, state.mapDefaultZoom, { animate: true, duration: 0.8 });
+    }
+});
+
+hudTrailsBtn?.addEventListener('click', () => {
+    playBeep(1000, 'sine', 0.04);
+    state.globalTrailsEnabled = !state.globalTrailsEnabled;
+    hudTrailsBtn.classList.toggle('active', state.globalTrailsEnabled);
+    const label = hudTrailsBtn.querySelector('.hud-label');
+    if (label) {
+        label.textContent = state.globalTrailsEnabled ? 'Trails ON' : 'Trails OFF';
+    }
+    renderMarkers();
+});
+
+hudNotamsBtn?.addEventListener('click', () => {
+    playBeep(1000, 'sine', 0.04);
+    state.notamOverlaysVisible = !state.notamOverlaysVisible;
+    hudNotamsBtn.classList.toggle('active', state.notamOverlaysVisible);
+    const label = hudNotamsBtn.querySelector('.hud-label');
+    if (label) {
+        label.textContent = state.notamOverlaysVisible ? 'NOTAMs ON' : 'NOTAMs OFF';
+    }
+    drawNotamOverlays();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOBILE DRAWER DETAILS PANEL GESTURES
+// ═══════════════════════════════════════════════════════════════════════════
+const drawerHandle = document.querySelector('#detail-viewer .drawer-handle');
+if (drawerHandle) {
+    let touchStartY = 0;
+    let touchCurrentY = 0;
+    
+    drawerHandle.addEventListener('touchstart', e => {
+        touchStartY = e.touches[0].clientY;
+        touchCurrentY = touchStartY;
+    }, { passive: true });
+    
+    drawerHandle.addEventListener('touchmove', e => {
+        touchCurrentY = e.touches[0].clientY;
+        const deltaY = touchCurrentY - touchStartY;
+        if (deltaY > 0 && el.detailViewer) {
+            el.detailViewer.style.transform = `translateY(${deltaY}px)`;
+            el.detailViewer.style.transition = 'none';
+        }
+    }, { passive: true });
+    
+    drawerHandle.addEventListener('touchend', () => {
+        const deltaY = touchCurrentY - touchStartY;
+        if (el.detailViewer) {
+            el.detailViewer.style.transform = '';
+            el.detailViewer.style.transition = '';
+        }
+        if (deltaY > 80) {
+            closeTelemetry();
+        }
+    });
+    
+    drawerHandle.addEventListener('click', () => {
+        playBeep(1000, 'sine', 0.04);
+        closeTelemetry();
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CLOSE TELEMETRY & SOUND
 // ═══════════════════════════════════════════════════════════════════════════
 el.closeTelemetryBtn?.addEventListener('click', closeTelemetry);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SOUND TOGGLE
-// ═══════════════════════════════════════════════════════════════════════════
 el.soundToggleBtn?.addEventListener('click',()=>{
     state.soundEnabled=!state.soundEnabled;
     el.soundToggleBtn.innerHTML=`<span id="sound-icon">${state.soundEnabled?'🔊':'🔇'}</span> AUDIO ${state.soundEnabled?'ON':'OFF'}`;
@@ -1325,6 +1571,8 @@ el.soundToggleBtn?.addEventListener('click',()=>{
 // ═══════════════════════════════════════════════════════════════════════════
 initMap();
 loadData();
+updateSortIcons();
+setAirportFilter('all');
 // Refresh every 8 seconds
 state.refreshInterval = setInterval(loadData, 8000);
 

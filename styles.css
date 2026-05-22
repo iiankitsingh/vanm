@@ -259,6 +259,19 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--border-radius-md);
     overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.airport-badge:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+}
+
+.airport-badge.active-filter {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+    background: rgba(0, 229, 255, 0.05);
 }
 
 .badge-icao {
@@ -333,6 +346,28 @@ h1, h2, h3, h4, h5, h6 {
 
 .search-box input::placeholder {
     color: var(--text-muted);
+}
+
+.search-clear {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-left: 8px;
+    transition: var(--transition-smooth);
+    display: inline-block;
+}
+
+.search-clear:hover {
+    color: var(--accent-red);
+    text-shadow: 0 0 8px rgba(255, 61, 0, 0.6);
+}
+
+.search-clear.hidden {
+    display: none !important;
 }
 
 .airport-filter {
@@ -424,6 +459,60 @@ h1, h2, h3, h4, h5, h6 {
 /* Subtle dark tint over the map so plane markers and overlays pop */
 .leaflet-tile-pane {
     filter: brightness(0.88) contrast(1.05) saturate(0.95);
+}
+
+/* Floating HUD Controls */
+.map-hud-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.hud-btn {
+    background: rgba(10, 20, 40, 0.75);
+    border: 1px solid rgba(0, 229, 255, 0.18);
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition-smooth);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.hud-btn:hover {
+    background: rgba(0, 229, 255, 0.12);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+}
+
+.hud-btn.active {
+    background: rgba(0, 230, 118, 0.12);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    text-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.2);
+}
+
+.hud-btn.active:hover {
+    background: rgba(0, 230, 118, 0.2);
+    color: #ffffff;
+    border-color: var(--accent-green);
 }
 
 /* Radar Sweeper Overlay */
@@ -869,6 +958,29 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 10;
 }
 
+.fids-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: var(--transition-smooth);
+}
+
+.fids-table th.sortable:hover {
+    color: #ffffff;
+    background: rgba(0, 229, 255, 0.06);
+}
+
+.sort-icon {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
+}
+
+.fids-table th.sortable:hover .sort-icon {
+    color: var(--accent-cyan);
+}
+
 .fids-table td {
     padding: 12px 18px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.02);
@@ -876,11 +988,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .fids-table tbody tr {
+    cursor: pointer;
+    animation: row-fade-in 0.3s ease-out;
     transition: var(--transition-smooth);
 }
 
 .fids-table tbody tr:hover {
-    background: rgba(0, 229, 255, 0.02);
+    background: rgba(0, 229, 255, 0.03);
+}
+
+@keyframes row-fade-in {
+    from { opacity: 0.65; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .fids-table td.table-empty {
@@ -1515,6 +1634,29 @@ input:focus, button:focus {
     box-shadow: 0 0 12px var(--glass-border-focus);
 }
 
+/* Tab Panel Active State & Transitions */
+.tab-panel.active {
+    display: flex;
+    flex-direction: column;
+    animation: panel-fade-in 0.4s ease-out;
+}
+
+@keyframes panel-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Desktop: hide drawer handle */
+.drawer-handle {
+    display: none;
+}
+
 /* ==========================================================================
    Responsive Adaptations — Tablet & Desktop (≥ 1024px: sidebar layout)
    ========================================================================== */
@@ -1688,11 +1830,57 @@ input:focus, button:focus {
         width: 100% !important;
     }
 
-    /* telemetry panel becomes a card below the map */
-    #tab-map .detail-panel {
-        height: auto;
-        max-height: none;
-        overflow: visible;
+    /* telemetry panel becomes a bottom slide-up drawer */
+    #detail-viewer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 65vh;
+        max-height: 80vh;
+        z-index: 10005; /* higher than mobile-nav (9999) */
+        background: rgba(4, 8, 20, 0.96);
+        border: 1px solid rgba(0, 229, 255, 0.15);
+        border-bottom: none;
+        border-radius: 24px 24px 0 0;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        padding: 16px 20px 24px 20px;
+        display: flex !important;
+        flex-direction: column;
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+    
+    #detail-viewer.hidden {
+        transform: translateY(100%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    #detail-viewer .drawer-handle {
+        display: block;
+        width: 50px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 3px;
+        margin: 0 auto 15px auto;
+        cursor: pointer;
+        transition: background 0.3s;
+        flex-shrink: 0;
+    }
+
+    #detail-viewer .drawer-handle:hover {
+        background: var(--accent-cyan);
+    }
+
+    #detail-viewer .detail-body {
+        overflow-y: auto;
+        flex-grow: 1;
+        padding-bottom: 20px;
     }
 
     /* ── FIDS tables: horizontal scroll on small screens ── */
@@ -1716,6 +1904,42 @@ input:focus, button:focus {
 
     .tel-item.span-2 {
         grid-column: span 2;
+    }
+}
+
+/* ── Mobile & Tablet Portrait Columns Pruning (max-width: 767px) ─────────── */
+@media (max-width: 767px) {
+    /* Arrivals & Departures: hide Altitude and Speed */
+    #arrivals-table th:nth-child(4),
+    #arrivals-table td:nth-child(4),
+    #arrivals-table th:nth-child(5),
+    #arrivals-table td:nth-child(5),
+    #departures-table th:nth-child(4),
+    #departures-table td:nth-child(4),
+    #departures-table th:nth-child(5),
+    #departures-table td:nth-child(5) {
+        display: none !important;
+    }
+
+    /* Ground: hide Aircraft model and Origin/Dest */
+    #ground-table th:nth-child(3),
+    #ground-table td:nth-child(3),
+    #ground-table th:nth-child(4),
+    #ground-table td:nth-child(4) {
+        display: none !important;
+    }
+
+    /* NOTAMs: hide Category and Validity */
+    #notams-table th:nth-child(3),
+    #notams-table td:nth-child(3),
+    #notams-table th:nth-child(5),
+    #notams-table td:nth-child(5) {
+        display: none !important;
+    }
+
+    /* Make tables occupy full width without scrolls */
+    .fids-table {
+        min-width: 100% !important;
     }
 }
 
