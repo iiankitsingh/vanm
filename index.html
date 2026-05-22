@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroRadar | Mumbai (VABB) & Navi Mumbai (VANM) Flight Tracker</title>
     
+    <!-- Detect Embed / Kiosk Mode immediately to prevent FOUC -->
+    <script>
+        if (window.location.search.includes('embed=true') || window.location.search.includes('kiosk=true')) {
+            document.documentElement.classList.add('embed-mode');
+        }
+    </script>
+    
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +25,53 @@
 /* ==========================================================================
    AeroRadar Custom Styling - Airport FIDS & Airspace Control Theme
    ========================================================================== */
+
+/* Embed / Kiosk Mode Styles */
+html.embed-mode body {
+    background: #040814 !important;
+}
+html.embed-mode .sidebar {
+    display: none !important;
+}
+html.embed-mode .app-header {
+    display: none !important;
+}
+html.embed-mode .filter-controls-bar {
+    display: none !important;
+}
+html.embed-mode .app-layout {
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+}
+html.embed-mode .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+}
+html.embed-mode .tab-panel {
+    height: 100vh !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+html.embed-mode .grid-container {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    gap: 0 !important;
+}
+html.embed-mode .map-panel {
+    border: none !important;
+    border-radius: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+}
+html.embed-mode #detail-viewer {
+    display: none !important;
+}
 
 :root {
     --bg-primary: #040814;
