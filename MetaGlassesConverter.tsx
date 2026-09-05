@@ -33,27 +33,27 @@ const DEVICE_PROFILES: Record<string, DeviceProfile> = {
     name: 'Ray-Ban Meta (Gen 2)',
     badgeText: 'Ray-Ban Meta Smart Glasses',
     tag: 'Gen 2',
-    exifMake: 'Meta',
-    exifModel: 'Ray-Ban Meta 2',
-    software: 'Meta View 151.0',
+    exifMake: 'Meta AI',
+    exifModel: 'Ray-Ban Meta Smart Glasses 2',
+    software: 'Meta View 171.0.0.38.109',
     photoWidth: 3024,
     photoHeight: 4032,
     videoWidth: 1440,
     videoHeight: 1920,
-    lensModel: 'Ray-Ban Meta Ultra-wide 12MP'
+    lensModel: 'Ray-Ban Meta Ultra-Wide 12MP f/2.2'
   },
   rb_meta_wayfarer: {
     name: 'Ray-Ban Meta Wayfarer',
     badgeText: 'Ray-Ban Meta Wayfarer',
     tag: 'Wayfarer',
-    exifMake: 'Meta',
-    exifModel: 'Ray-Ban Meta Wayfarer',
-    software: 'Meta View 151.0',
+    exifMake: 'Meta AI',
+    exifModel: 'Ray-Ban Meta Smart Glasses 2',
+    software: 'Meta View 171.0.0.38.109',
     photoWidth: 3024,
     photoHeight: 4032,
     videoWidth: 1440,
     videoHeight: 1920,
-    lensModel: 'Ray-Ban Meta Ultra-wide 12MP'
+    lensModel: 'Ray-Ban Meta Ultra-Wide 12MP f/2.2'
   },
   rb_stories: {
     name: 'Ray-Ban Stories (Gen 1)',
@@ -215,15 +215,19 @@ export const MetaGlassesConverter: React.FC = () => {
       zeroth[piexif.ImageIFD.XResolution] = [72, 1];
       zeroth[piexif.ImageIFD.YResolution] = [72, 1];
 
+      exif[piexif.ExifIFD.ExifVersion] = "0232";
       exif[piexif.ExifIFD.PixelXDimension] = activeProfile.photoWidth;
       exif[piexif.ExifIFD.PixelYDimension] = activeProfile.photoHeight;
       exif[piexif.ExifIFD.DateTimeOriginal] = dateStr;
       exif[piexif.ExifIFD.DateTimeDigitized] = dateStr;
       exif[piexif.ExifIFD.LensModel] = activeProfile.lensModel;
       exif[piexif.ExifIFD.LensMake] = activeProfile.exifMake;
-      exif[piexif.ExifIFD.FocalLength] = [22, 10];
+      exif[piexif.ExifIFD.FocalLength] = [224, 100];
+      exif[piexif.ExifIFD.FocalLengthIn35mmFilm] = 12;
       exif[piexif.ExifIFD.FNumber] = [22, 10];
       exif[piexif.ExifIFD.ColorSpace] = 1;
+      exif[piexif.ExifIFD.SceneCaptureType] = 0;
+      exif[piexif.ExifIFD.ExposureProgram] = 2;
 
       const exifObj = {
         '0th': zeroth,
