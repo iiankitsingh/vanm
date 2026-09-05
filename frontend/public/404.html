@@ -8,19 +8,14 @@
       sessionStorage.setItem('ghpages_redirect_path', window.location.pathname);
       sessionStorage.setItem('ghpages_redirect_search', window.location.search);
       
-      // If navigating to meta-glass, direct to the static folder
+      // If navigating to meta-glass, redirect directly to /meta-glass/
       if (window.location.pathname.includes('meta-glass')) {
-        const pathParts = window.location.pathname.split('/');
-        const repo = pathParts[1] ? '/' + pathParts[1] : '';
-        window.location.replace(window.location.origin + repo + '/meta-glass/');
+        window.location.replace(window.location.origin + '/meta-glass/');
         return;
       }
       
-      // Redirect to the repo root folder
-      // E.g., from "/vanm/results" to "/vanm/"
-      const pathParts = window.location.pathname.split('/');
-      const repoPath = '/' + pathParts[1] + '/';
-      window.location.replace(window.location.origin + repoPath);
+      // Redirect to the site root folder
+      window.location.replace(window.location.origin + '/');
     </script>
   </head>
   <body>

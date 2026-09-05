@@ -6,6 +6,11 @@ function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   useEffect(() => {
+    if (window.location.pathname.includes('meta-glass')) {
+      window.location.replace(window.location.origin + '/meta-glass/');
+      return;
+    }
+
     // Restore deep links from GitHub Pages 404 redirects
     const redirectPath = sessionStorage.getItem("ghpages_redirect_path");
     const redirectSearch = sessionStorage.getItem("ghpages_redirect_search");
