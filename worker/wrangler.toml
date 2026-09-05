@@ -1,0 +1,6 @@
+name = "flight-search-proxy"
+compatibility_date = "2026-05-24"
+main = "src/index.ts"
+
+[vars]
+# You can set default environment variables here if needed

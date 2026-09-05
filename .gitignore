@@ -17,3 +17,16 @@ htmlcov/
 .vscode/
 .idea/
 .DS_Store
+
+# Frontend & Node
+node_modules/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Worker & Wrangler
+.wrangler/
+.dev.vars
+

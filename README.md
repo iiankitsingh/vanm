@@ -1,36 +1,124 @@
-# 📡 AeroRadar | Real-Time Client-Side Flight Tracker
+# AeroSearch — Skyscanner Flight Search Clone
 
-A sleek, premium, real-time Flightradar24-style tracking web application centered on Navi Mumbai, India (Lat: 19.033, Lon: 73.029).
+A premium, fully functional flight search web application modelled on Skyscanner. It features a React Single Page Application (SPA) frontend built with Vite, TypeScript, and Tailwind CSS v4, and a secure backend API proxy deployed as a Cloudflare Worker.
 
-This app runs **100% client-side** using only HTML, CSS, and Vanilla JavaScript, making it perfect for hosting directly on **GitHub Pages**.
+---
 
-Deployed live on GitHub Pages: **[https://iiankitsingh.github.io/vanm/](https://iiankitsingh.github.io/vanm/)**
+## 🏛️ System Architecture
+
+```
+   +-----------------------+
+   |   Vite + React SPA    |  (Deployed to GitHub Pages)
+   |  (TypeScript, Tailwind) |
+   +-----------------------+
+               |
+               | HTTP Requests
+               v
+   +-----------------------+
+   |   Cloudflare Worker   |  (Secures Amadeus API secrets)
+   |    (Proxy Server)     |
+   +-----------------------+
+               |
+               | Authenticated API Requests
+               v
+   +-----------------------+
+   | Amadeus Developer API |  (Flight offers & pricing database)
+   +-----------------------+
+```
+
+*The frontend never communicates with the Amadeus API directly. All requests go through the Cloudflare Worker proxy, which manages OAuth token renewal, caching, and request rates.*
 
 ---
 
 ## ✨ Features
 
-- **Interactive Dark Map**: Uses Leaflet.js and CartoDB Dark Matter tile layer to render an ATC-themed dark radar map.
-- **Airplanes.Live Integration**: Connects to the unfiltered Airplanes.Live REST API directly from the browser, retrieving aircraft vectors within a 250 nautical mile radius.
-- **Smooth Coordinate Glide Interpolation**: Instead of planes jumping every 4 seconds, a `requestAnimationFrame` loop calculates linear position transitions, making airplanes glide smoothly across the screen at 60 FPS.
-- **Shortest-Path Angle Wrapping**: Smoothly interpolates headings (tracks) so plane icons rotate naturally when wrapping around the 360-degree boundary.
-- **Custom Aircraft Vector Icons**: Uses a custom-rotated SVG airplane silhouette styled with CSS glow effects (cyan for active, yellow for highlighted/selected plane).
-- **Glassmorphic HUD Elements**: Features a premium top-right counter displaying the count of live aircraft and custom dark popups revealing Callsign, Registration, Aircraft Type, Altitude, and Speed.
+- **Trip Type Toggle**: Instantly switch between One-way and Round-trip flights.
+- **Airport Typeahead**: Debounced (300ms) airport and city location autocomplete inputs.
+- **Dynamic Search Details**: Native date pickers, class of travel select, and count controls for up to 9 adults.
+- **Cheapest Date Price Calendar**: A horizontal 5-week pricing strip showing surrounding cheaper (green), mid-range (amber), or expensive (red) days.
+- **Rich Results Filtering**: Filter flights by stops count, max price slider, departure time of day, and airlines checkbox listings.
+- **Multi-criteria Sorting**: Sort flight cards instantly by Cheapest, Fastest, or Best (price-to-time ratio) options.
+- **Dark Mode Support**: Styled using Tailwind CSS v4, respecting system-wide `prefers-color-scheme` settings.
 
 ---
 
-## 🚀 How to Run Locally
+## 🚀 Quick Start (Local Development)
 
-Since the app is fully self-contained in a single file:
-1. Double-click `index.html` to open it directly in any browser.
-2. Alternatively, spin up a quick local web server:
+### Prerequisites
+Make sure you have Node.js and NPM/Yarn installed on your machine.
+
+### Setup Instructions
+
+1. **Get Amadeus API Keys**:
+   - Register a developer account at [developers.amadeus.com](https://developers.amadeus.com/).
+   - Create a Self-Service app and copy your Client ID and Client Secret.
+
+2. **Configure Environment Secrets**:
+   - In `/worker/`, copy the example file:
+     ```bash
+     cp worker/.dev.vars.example worker/.dev.vars
+     ```
+     Open `worker/.dev.vars` and add your client keys:
+     ```env
+     AMADEUS_CLIENT_ID=your_client_id_here
+     AMADEUS_CLIENT_SECRET=your_client_secret_here
+     ```
+   - In `/frontend/`, copy the example file:
+     ```bash
+     cp frontend/.env.local.example frontend/.env.local
+     ```
+
+3. **Install dependencies**:
    ```bash
-   python3 -m http.server 8080
+   # Install Worker packages
+   cd worker
+   npm install
+
+   # Install Frontend packages
+   cd ../frontend
+   npm install
    ```
-3. Open **[http://localhost:8080](http://localhost:8080)** in your browser.
+
+4. **Launch Dev Servers**:
+   Return to the project root directory and run the dev script:
+   ```bash
+   cd ..
+   ./dev.sh
+   ```
+   *This launches the Cloudflare Wrangler local environment on `http://localhost:8787` and Vite on `http://localhost:5173`.*
+
+5. **Browse the App**:
+   Go to **[http://localhost:5173](http://localhost:5173)** in your browser!
 
 ---
 
 ## 🛠️ Project Structure
 
-- `index.html`: Holds the entire application structure, styling (CSS overrides for custom dark popups, transitions, and layout), and interactive JavaScript (smooth physics, shortest-path rotation, API polling, and Leaflet binding).
+```
+├── .github/workflows/    # CI/CD deployment configuration
+│   └── deploy.yml        # Automatically deploys frontend to GitHub Pages
+├── frontend/             # Vite + React (TypeScript) Application
+│   ├── src/
+│   │   ├── api/          # Network layer connecting to Cloudflare Worker
+│   │   ├── components/   # UI widgets (FlightCard, PriceCalendar, SearchForm, etc.)
+│   │   ├── hooks/        # React hooks (useAirportSearch, useFlightSearch)
+│   │   ├── pages/        # Main pages (Home, Results)
+│   │   ├── types/        # Amadeus responses typings
+│   │   ├── utils/        # Parsing and formatting utilities
+│   │   └── index.css     # CSS root & Tailwind imports
+│   └── vite.config.ts    # Build & asset deployment configuration
+├── worker/               # Cloudflare Worker proxy
+│   ├── src/
+│   │   └── index.ts      # Worker endpoints, OAuth caching, CORS handling
+│   ├── wrangler.toml     # Worker project metadata
+│   └── package.json
+├── dev.sh                # Launcher script for parallel dev servers
+└── README.md
+```
+
+---
+
+## 📖 Additional Docs
+
+- Refer to [SETUP.md](file:///Users/ankitsingh/Desktop/NOTAM%202.0/SETUP.md) for more details on setup and production deployment.
+- Refer to [GEMINI.md](file:///Users/ankitsingh/Desktop/NOTAM%202.0/GEMINI.md) for data constraints, rate limits, and known Amadeus quirks.

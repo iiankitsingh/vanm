@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Meta Glasses Converter | Ray-Ban Meta Photo Formatter</title>
+  <meta name="description" content="1-Tap 3024x4032 format, Meta AI EXIF injection, Base64 & direct Photo Save for Ray-Ban Meta Smart Glasses.">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              cyan: '#00d2ff',
+              purple: '#7928ca',
+              magenta: '#ff007f',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            glow: {
+              '0%': { boxShadow: '0 0 15px -3px rgba(0, 210, 255, 0.3)' },
+              '100%': { boxShadow: '0 0 25px 3px rgba(255, 0, 127, 0.4)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Piexif.js for EXIF metadata manipulation -->
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
+
+  <style>
+    /* Custom Scrollbar & Selection */
+    ::selection {
+      background: rgba(255, 0, 127, 0.3);
+      color: #ffffff;
+    }
+    
+    /* Radial Background Lighting */
+    body {
+      background-color: #050811;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.35) 0%, transparent 55%),
+        radial-gradient(circle at 10% 80%, rgba(121, 40, 202, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(255, 0, 127, 0.12) 0%, transparent 40%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Glassmorphic card styling */
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    /* Primary Action Button Gradient */
+    .btn-gradient-cta {
+      background: linear-gradient(135deg, #00d2ff 0%, #7928ca 52%, #ff007f 100%);
+      background-size: 200% 200%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-gradient-cta:hover:not(:disabled) {
+      background-position: right center;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px -5px rgba(255, 0, 127, 0.4), 0 0 15px rgba(0, 210, 255, 0.3);
+    }
+    .btn-gradient-cta:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+    .btn-gradient-cta:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(40%);
+    }
+
+    /* Dropzone dashed styling */
+    .dropzone-border {
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%23334155' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+    }
+    .dropzone-border.drag-active {
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%2300D2FF' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+      background-color: rgba(0, 210, 255, 0.05);
+    }
+  </style>
+</head>
+
+<body class="text-slate-100 flex flex-col min-h-screen antialiased">
+  
+  <!-- Hidden File Inputs -->
+  <!-- 1. Dedicated Camera input (prioritizes rear device camera on mobile) -->
+  <input type="file" id="cameraInput" accept="image/jpeg,image/jpg,image/png,image/webp" capture="environment" class="hidden">
+  <!-- 2. Standard Photo Library input -->
+  <input type="file" id="libraryInput" accept="image/jpeg,image/jpg,image/png,image/webp" class="hidden">
+
+  <!-- Main Container -->
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-12 max-w-lg mx-auto w-full">
+    
+    <!-- 1. Top Badge -->
+    <div class="mb-4">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/70 border border-blue-500/30 text-blue-400 text-xs font-semibold tracking-wide shadow-sm">
+        <span class="text-blue-500 font-mono text-sm leading-none">--</span>
+        <span>Ray-Ban Meta Smart Glasses</span>
+      </div>
+    </div>
+
+    <!-- 2. Header -->
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight text-center mb-2">
+      Photo Converter
+    </h1>
+
+    <!-- 3. Subtext -->
+    <p class="text-xs sm:text-sm text-slate-400 text-center max-w-sm mb-6 sm:mb-8 leading-relaxed">
+      1-Tap 3024x4032 format, Meta AI EXIF injection, Base64 & direct Photo Save.
+    </p>
+
+    <!-- 4. Main App Card -->
+    <div class="w-full glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-7 transition-all duration-300">
+      
+      <!-- 5. Top Button Row (Inside Card) -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- Take Photo -->
+        <button 
+          id="btnTakePhoto" 
+          type="button"
+          class="flex items-center justify-center gap-2 py-3 px-3.5 bg-slate-800/80 hover:bg-slate-700/80 active:bg-slate-800 border border-slate-700/60 rounded-xl text-xs sm:text-sm font-medium text-slate-200 hover:text-white transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+        >
+          <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="truncate">Take Photo</span>
+        </button>
+
+        <!-- Photo Library -->
+        <button 
+          id="btnPhotoLibrary" 
+          type="button"
+          class="flex items-center justify-center gap-2 py-3 px-3.5 bg-slate-800/80 hover:bg-slate-700/80 active:bg-slate-800 border border-slate-700/60 rounded-xl text-xs sm:text-sm font-medium text-slate-200 hover:text-white transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+        >
+          <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span class="truncate">Photo Library</span>
+        </button>
+      </div>
+
+      <!-- 6. Upload Dropzone Area -->
+      <div 
+        id="dropzone" 
+        class="dropzone-border rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 hover:bg-slate-800/30 group relative overflow-hidden min-h-[190px]"
+      >
+        <!-- Empty State View -->
+        <div id="dropzonePrompt" class="flex flex-col items-center">
+          <div class="w-12 h-12 mb-3 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+            <span class="text-2xl leading-none select-none">⚡</span>
+          </div>
+          <p class="text-sm sm:text-base font-bold text-white group-hover:text-blue-300 transition-colors">
+            Tap to select photo
+          </p>
+          <p class="text-xs text-slate-400 mt-1">
+            Supports any JPG / JPEG photo
+          </p>
+        </div>
+
+        <!-- Loaded State View (Hidden by default) -->
+        <div id="dropzonePreview" class="hidden w-full flex flex-col items-center gap-3">
+          <div class="relative w-28 h-36 rounded-xl overflow-hidden shadow-lg border border-slate-700 bg-slate-900 group/img">
+            <img id="previewImage" src="" alt="Photo Preview" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="text-[10px] text-white font-medium bg-black/60 px-2 py-1 rounded">Change</span>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <p id="previewFileName" class="text-xs font-semibold text-slate-200 truncate max-w-[220px]">
+              photo.jpg
+            </p>
+            <p id="previewFileMeta" class="text-[11px] text-slate-400 mt-0.5">
+              Original: -- x -- px
+            </p>
+            <div id="convertedStatusBadge" class="hidden mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
+              <span>✓ 3024x4032 & EXIF Injected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Primary Action Button -->
+      <button 
+        id="btnConvert" 
+        type="button" 
+        disabled
+        class="btn-gradient-cta w-full mt-4 py-3.5 px-6 rounded-xl font-bold text-white text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg focus:outline-none focus:ring-2 focus:ring-pink-500/50 select-none"
+      >
+        <span id="convertBtnIcon">⚡</span>
+        <span id="convertBtnText">ALL-IN-ONE CONVERT</span>
+        <!-- Animated Spinner -->
+        <svg id="convertSpinner" class="hidden animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </button>
+
+      <!-- 8. Secondary Action Row -->
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <!-- Copy Base64 -->
+        <button 
+          id="btnCopyBase64" 
+          type="button" 
+          disabled
+          class="flex items-center justify-center gap-2 py-3 px-3.5 bg-slate-800/60 hover:bg-slate-700/70 active:bg-slate-800 border border-slate-700/50 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-500/40"
+        >
+          <svg id="iconClipboard" class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+          </svg>
+          <span id="labelCopyBase64" class="truncate">Copy Base64</span>
+        </button>
+
+        <!-- Save / Share -->
+        <button 
+          id="btnSaveShare" 
+          type="button" 
+          disabled
+          class="flex items-center justify-center gap-2 py-3 px-3.5 bg-slate-800/60 hover:bg-slate-700/70 active:bg-slate-800 border border-slate-700/50 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-500/40"
+        >
+          <svg id="iconSave" class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <!-- Floppy Disk Icon -->
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8l-4-4H8z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 4v4h8V4" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 14h8v6H8z" />
+          </svg>
+          <span id="labelSaveShare" class="truncate">Save / Share</span>
+        </button>
+      </div>
+
+      <!-- 9. Information Badges (Two-column grid) -->
+      <div class="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-slate-800/80">
+        <!-- Left: Resolution -->
+        <div class="bg-slate-800/40 border border-slate-700/40 rounded-xl p-3 text-left">
+          <span class="block text-[11px] font-medium text-slate-400 tracking-wide uppercase">Resolution</span>
+          <span class="block text-xs sm:text-sm font-bold text-white mt-0.5 font-mono">3024 x 4032 px</span>
+        </div>
+
+        <!-- Right: Meta AI EXIF -->
+        <div class="bg-slate-800/40 border border-slate-700/40 rounded-xl p-3 text-left">
+          <span class="block text-[11px] font-medium text-slate-400 tracking-wide uppercase">Meta AI EXIF</span>
+          <span class="block text-xs sm:text-sm font-bold text-white mt-0.5">Ray-Ban Meta 2</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 10. Footer -->
+    <footer class="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500 text-center">
+      <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <span>100% Client-Side. Photos are processed strictly on your device.</span>
+    </footer>
+
+  </main>
+
+  <!-- Floating Toast Notification System -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- Technical JavaScript Implementation -->
+  <script>
+    // State management
+    const state = {
+      rawFile: null,
+      sourceDataUrl: null,
+      sourceImage: null,
+      convertedDataUrl: null,
+      convertedBlob: null,
+      isConverting: false
+    };
+
+    // Constants
+    const TARGET_WIDTH = 3024;
+    const TARGET_HEIGHT = 4032;
+    const EXIF_MAKE = "Meta";
+    const EXIF_MODEL = "Ray-Ban Meta 2";
+    const EXIF_SOFTWARE = "Meta View 151.0";
+
+    // DOM Elements
+    const cameraInput = document.getElementById('cameraInput');
+    const libraryInput = document.getElementById('libraryInput');
+    const btnTakePhoto = document.getElementById('btnTakePhoto');
+    const btnPhotoLibrary = document.getElementById('btnPhotoLibrary');
+    const dropzone = document.getElementById('dropzone');
+    const dropzonePrompt = document.getElementById('dropzonePrompt');
+    const dropzonePreview = document.getElementById('dropzonePreview');
+    const previewImage = document.getElementById('previewImage');
+    const previewFileName = document.getElementById('previewFileName');
+    const previewFileMeta = document.getElementById('previewFileMeta');
+    const convertedStatusBadge = document.getElementById('convertedStatusBadge');
+    
+    const btnConvert = document.getElementById('btnConvert');
+    const convertBtnIcon = document.getElementById('convertBtnIcon');
+    const convertBtnText = document.getElementById('convertBtnText');
+    const convertSpinner = document.getElementById('convertSpinner');
+    
+    const btnCopyBase64 = document.getElementById('btnCopyBase64');
+    const labelCopyBase64 = document.getElementById('labelCopyBase64');
+    const iconClipboard = document.getElementById('iconClipboard');
+    
+    const btnSaveShare = document.getElementById('btnSaveShare');
+    const labelSaveShare = document.getElementById('labelSaveShare');
+    const toastContainer = document.getElementById('toastContainer');
+
+    // Toast Utility
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-slate-900/90 border-emerald-500/40 text-emerald-300',
+        error: 'bg-slate-900/90 border-rose-500/40 text-rose-300',
+        info: 'bg-slate-900/90 border-blue-500/40 text-blue-300'
+      };
+      const icons = {
+        success: '✓',
+        error: '✕',
+        info: 'ℹ'
+      };
+
+      toast.className = `flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md text-xs font-medium transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <span class="font-bold text-sm">${icons[type] || '•'}</span>
+        <span>${message}</span>
+      `;
+
+      toastContainer.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Event Listeners for File Selection
+    btnTakePhoto.addEventListener('click', () => cameraInput.click());
+    btnPhotoLibrary.addEventListener('click', () => libraryInput.click());
+    dropzone.addEventListener('click', (e) => {
+      // If clicking preview to change photo, open library
+      libraryInput.click();
+    });
+
+    cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+    libraryInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+
+    // Drag and drop handlers
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('drag-active');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('drag-active');
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const file = dt.files[0];
+      if (file) handleFileSelect(file);
+    });
+
+    // Handle Selected File
+    function handleFileSelect(file) {
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file (JPG / JPEG).', 'error');
+        return;
+      }
+
+      state.rawFile = file;
+      state.convertedDataUrl = null;
+      state.convertedBlob = null;
+
+      // Update UI for loading preview
+      convertedStatusBadge.classList.add('hidden');
+      btnCopyBase64.disabled = true;
+      btnSaveShare.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        state.sourceDataUrl = event.target.result;
+        
+        const img = new Image();
+        img.onload = () => {
+          state.sourceImage = img;
+          
+          // Update Dropzone Preview
+          previewImage.src = state.sourceDataUrl;
+          previewFileName.textContent = file.name;
+          previewFileMeta.textContent = `Original: ${img.naturalWidth} x ${img.naturalHeight} px`;
+          
+          dropzonePrompt.classList.add('hidden');
+          dropzonePreview.classList.remove('hidden');
+
+          // Enable Convert Button
+          btnConvert.disabled = false;
+          convertBtnText.textContent = "⚡ ALL-IN-ONE CONVERT";
+          btnConvert.classList.remove('opacity-50');
+
+          showToast('Photo loaded. Ready to convert!', 'info');
+        };
+        img.onerror = () => {
+          showToast('Failed to parse the selected image.', 'error');
+        };
+        img.src = state.sourceDataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Helper: Format Date for EXIF "YYYY:MM:DD HH:MM:SS"
+    function getExifFormattedDate(date = new Date()) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${date.getFullYear()}:${pad(date.getMonth() + 1)}:${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+
+    // Native / Fallback EXIF APP1 Injection (ensures offline reliability)
+    function injectMetaExifFallback(jpegDataUrl) {
+      try {
+        const parts = jpegDataUrl.split(',');
+        const binaryStr = atob(parts[1]);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+
+        // Check JPEG SOI (FF D8)
+        if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) {
+          return jpegDataUrl;
+        }
+
+        // Build APP1 EXIF Segment
+        const dateStr = getExifFormattedDate() + '\0';
+        const makeStr = EXIF_MAKE + '\0';
+        const modelStr = EXIF_MODEL + '\0';
+        const softStr = EXIF_SOFTWARE + '\0';
+
+        // Little-endian TIFF construction
+        const tiffHeader = [0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00]; // II, 42, offset to IFD0 = 8
+
+        // IFD0 entries (count = 5):
+        // 0x010F: Make (ASCII)
+        // 0x0110: Model (ASCII)
+        // 0x0112: Orientation = 1 (SHORT)
+        // 0x0131: Software (ASCII)
+        // 0x8769: ExifIFDPointer (LONG)
+        const ifd0Offset = 8;
+        const numIfd0Tags = 5;
+        const ifd0Size = 2 + (numIfd0Tags * 12) + 4; // 66 bytes
+        const data0Start = ifd0Offset + ifd0Size; // 74
+
+        let curOffset = data0Start;
+        const offsetMake = curOffset; curOffset += makeStr.length;
+        const offsetModel = curOffset; curOffset += modelStr.length;
+        const offsetSoft = curOffset; curOffset += softStr.length;
+        if (curOffset % 2 !== 0) curOffset++; // Word align
+        const offsetSubIfd = curOffset;
+
+        // SubIFD (count = 2):
+        // 0xA002: PixelXDimension = 3024 (LONG)
+        // 0xA003: PixelYDimension = 4032 (LONG)
+        const numSubTags = 2;
+
+        const buffer = [];
+        function push16(val) { buffer.push(val & 0xFF, (val >> 8) & 0xFF); }
+        function push32(val) { buffer.push(val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF, (val >> 24) & 0xFF); }
+        function pushStr(str) { for (let i = 0; i < str.length; i++) buffer.push(str.charCodeAt(i)); }
+
+        // Write TIFF Header
+        tiffHeader.forEach(b => buffer.push(b));
+
+        // Write IFD0 Tag count
+        push16(numIfd0Tags);
+
+        // Tags sorted by tag ID
+        // 1. Make: 0x010F
+        push16(0x010F); push16(2); push32(makeStr.length); push32(offsetMake);
+        // 2. Model: 0x0110
+        push16(0x0110); push16(2); push32(modelStr.length); push32(offsetModel);
+        // 3. Orientation: 0x0112
+        push16(0x0112); push16(3); push32(1); push16(1); push16(0);
+        // 4. Software: 0x0131
+        push16(0x0131); push16(2); push32(softStr.length); push32(offsetSoft);
+        // 5. ExifOffset: 0x8769
+        push16(0x8769); push16(4); push32(1); push32(offsetSubIfd);
+
+        // Next IFD = 0
+        push32(0);
+
+        // Append Data strings
+        pushStr(makeStr);
+        pushStr(modelStr);
+        pushStr(softStr);
+        while (buffer.length < offsetSubIfd) buffer.push(0);
+
+        // Write SubIFD
+        push16(numSubTags);
+        // PixelXDimension: 0xA002
+        push16(0xA002); push16(4); push32(1); push32(TARGET_WIDTH);
+        // PixelYDimension: 0xA003
+        push16(0xA003); push16(4); push32(1); push32(TARGET_HEIGHT);
+        // Next IFD = 0
+        push32(0);
+
+        // Wrap into APP1 Segment
+        const exifHeader = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]; // "Exif\0\0"
+        const app1Len = 2 + exifHeader.length + buffer.length;
+        const app1Seg = [
+          0xFF, 0xE1,
+          (app1Len >> 8) & 0xFF, app1Len & 0xFF,
+          ...exifHeader,
+          ...buffer
+        ];
+
+        // Find insertion point right after SOI (and skip existing APP0/APP1 if desired)
+        let insertPos = 2;
+        if (bytes[2] === 0xFF && (bytes[3] === 0xE0 || bytes[3] === 0xE1)) {
+          const segLen = (bytes[4] << 8) | bytes[5];
+          insertPos = 4 + segLen;
+        }
+
+        const finalBytes = new Uint8Array(bytes.length + app1Seg.length);
+        finalBytes.set(bytes.subarray(0, insertPos), 0);
+        finalBytes.set(app1Seg, insertPos);
+        finalBytes.set(bytes.subarray(insertPos), insertPos + app1Seg.length);
+
+        // Return new data URL
+        let binary = '';
+        const chunk = 8192;
+        for (let i = 0; i < finalBytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, finalBytes.subarray(i, i + chunk));
+        }
+        return 'data:image/jpeg;base64,' + btoa(binary);
+      } catch (err) {
+        console.error('Fallback EXIF injection error:', err);
+        return jpegDataUrl;
+      }
+    }
+
+    // Master EXIF Injector (uses piexifjs when loaded, falls back gracefully)
+    function injectMetaExif(canvasJpegDataUrl) {
+      if (typeof piexif !== 'undefined') {
+        try {
+          const nowStr = getExifFormattedDate();
+          const zeroth = {};
+          const exif = {};
+
+          zeroth[piexif.ImageIFD.Make] = EXIF_MAKE;
+          zeroth[piexif.ImageIFD.Model] = EXIF_MODEL;
+          zeroth[piexif.ImageIFD.Software] = EXIF_SOFTWARE;
+          zeroth[piexif.ImageIFD.Orientation] = 1;
+          zeroth[piexif.ImageIFD.DateTime] = nowStr;
+          zeroth[piexif.ImageIFD.XResolution] = [72, 1];
+          zeroth[piexif.ImageIFD.YResolution] = [72, 1];
+
+          exif[piexif.ExifIFD.PixelXDimension] = TARGET_WIDTH;
+          exif[piexif.ExifIFD.PixelYDimension] = TARGET_HEIGHT;
+          exif[piexif.ExifIFD.DateTimeOriginal] = nowStr;
+          exif[piexif.ExifIFD.DateTimeDigitized] = nowStr;
+          exif[piexif.ExifIFD.LensModel] = "Ray-Ban Meta Smart Glasses Camera";
+          exif[piexif.ExifIFD.LensMake] = "Meta";
+          exif[piexif.ExifIFD.FocalLength] = [22, 10]; // 2.2mm
+          exif[piexif.ExifIFD.FNumber] = [22, 10]; // f/2.2
+          exif[piexif.ExifIFD.ColorSpace] = 1; // sRGB
+
+          const exifObj = {
+            "0th": zeroth,
+            "Exif": exif,
+            "GPS": {},
+            "Interop": {},
+            "1st": {},
+            "thumbnail": null
+          };
+
+          const exifBytes = piexif.dump(exifObj);
+          return piexif.insert(exifBytes, canvasJpegDataUrl);
+        } catch (e) {
+          console.warn('piexifjs failed, using fallback injector:', e);
+          return injectMetaExifFallback(canvasJpegDataUrl);
+        }
+      } else {
+        return injectMetaExifFallback(canvasJpegDataUrl);
+      }
+    }
+
+    // Helper: Convert DataURL to Blob
+    function dataUrlToBlob(dataUrl) {
+      const arr = dataUrl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    }
+
+    // Perform Resize and EXIF Injection
+    async function performConversion() {
+      if (!state.sourceImage || state.isConverting) return;
+
+      try {
+        state.isConverting = true;
+        btnConvert.disabled = true;
+        convertSpinner.classList.remove('hidden');
+        convertBtnIcon.classList.add('hidden');
+        convertBtnText.textContent = "PROCESSING...";
+
+        // Yield to browser UI thread to allow animation frame
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // 1. Setup Canvas for 3024 x 4032 (3:4 portrait)
+        const canvas = document.createElement('canvas');
+        canvas.width = TARGET_WIDTH;
+        canvas.height = TARGET_HEIGHT;
+        const ctx = canvas.getContext('2d');
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // 2. Aspect-fill / Smart Center Crop calculation
+        const img = state.sourceImage;
+        const targetAspect = TARGET_WIDTH / TARGET_HEIGHT; // ~0.75
+        const srcAspect = img.naturalWidth / img.naturalHeight;
+
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        if (srcAspect > targetAspect) {
+          // Source image is wider than 3:4 -> fit height, crop excess horizontal
+          drawHeight = TARGET_HEIGHT;
+          drawWidth = img.naturalWidth * (TARGET_HEIGHT / img.naturalHeight);
+          offsetX = (TARGET_WIDTH - drawWidth) / 2;
+          offsetY = 0;
+        } else {
+          // Source image is taller than 3:4 -> fit width, crop excess vertical
+          drawWidth = TARGET_WIDTH;
+          drawHeight = img.naturalHeight * (TARGET_WIDTH / img.naturalWidth);
+          offsetX = 0;
+          offsetY = (TARGET_HEIGHT - drawHeight) / 2;
+        }
+
+        // Draw cropped and centered image onto canvas
+        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+        // 3. Export to High-Quality JPEG
+        const baseJpegDataUrl = canvas.toDataURL('image/jpeg', 0.96);
+
+        // 4. Inject Meta Smart Glasses EXIF
+        const finalDataUrl = injectMetaExif(baseJpegDataUrl);
+        state.convertedDataUrl = finalDataUrl;
+        state.convertedBlob = dataUrlToBlob(finalDataUrl);
+
+        // Update preview image to converted result
+        previewImage.src = finalDataUrl;
+        convertedStatusBadge.classList.remove('hidden');
+
+        // Enable Secondary Actions
+        btnCopyBase64.disabled = false;
+        btnSaveShare.disabled = false;
+
+        showToast('Converted to 3024x4032 with Meta EXIF!', 'success');
+
+        convertBtnText.textContent = "CONVERTED ✓";
+        setTimeout(() => {
+          convertBtnText.textContent = "⚡ ALL-IN-ONE CONVERT";
+          btnConvert.disabled = false;
+        }, 2000);
+
+      } catch (err) {
+        console.error('Conversion failed:', err);
+        showToast('Error during conversion: ' + err.message, 'error');
+        btnConvert.disabled = false;
+        convertBtnText.textContent = "⚡ ALL-IN-ONE CONVERT";
+      } finally {
+        state.isConverting = false;
+        convertSpinner.classList.add('hidden');
+        convertBtnIcon.classList.remove('hidden');
+      }
+    }
+
+    btnConvert.addEventListener('click', performConversion);
+
+    // Secondary Action: Copy Base64
+    btnCopyBase64.addEventListener('click', async () => {
+      if (!state.convertedDataUrl) return;
+
+      try {
+        await navigator.clipboard.writeText(state.convertedDataUrl);
+        
+        const originalText = labelCopyBase64.textContent;
+        labelCopyBase64.textContent = "Copied!";
+        iconClipboard.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />`;
+        iconClipboard.classList.replace('text-slate-400', 'text-emerald-400');
+
+        showToast('Base64 copied to clipboard!', 'success');
+
+        setTimeout(() => {
+          labelCopyBase64.textContent = originalText;
+          iconClipboard.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />`;
+          iconClipboard.classList.replace('text-emerald-400', 'text-slate-400');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err);
+        showToast('Clipboard access denied. Check browser permissions.', 'error');
+      }
+    });
+
+    // Secondary Action: Save / Share
+    btnSaveShare.addEventListener('click', async () => {
+      if (!state.convertedBlob || !state.convertedDataUrl) return;
+
+      const filename = `rayban_meta_${Date.now()}.jpg`;
+
+      // Try Native Mobile Web Share API first if supported
+      const fileToShare = new File([state.convertedBlob], filename, { type: 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [fileToShare] })) {
+        try {
+          await navigator.share({
+            files: [fileToShare],
+            title: 'Ray-Ban Meta Photo',
+            text: 'Converted with Meta Glasses Converter'
+          });
+          showToast('Shared successfully!', 'success');
+          return;
+        } catch (err) {
+          // If user aborted or cancelled share dialog, don't trigger download
+          if (err.name === 'AbortError') return;
+          console.log('Share API fallback to direct download:', err);
+        }
+      }
+
+      // Fallback: Direct Download
+      try {
+        const link = document.createElement('a');
+        link.href = state.convertedDataUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Photo saved to downloads!', 'success');
+      } catch (err) {
+        console.error('Download failed:', err);
+        showToast('Download failed. Try copying Base64.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>
