@@ -203,8 +203,14 @@ export function Home({ onNavigate }: HomeProps) {
       </div>
 
       {/* Footer */}
-      <footer className="mt-auto py-8 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-500 font-semibold bg-white dark:bg-slate-900/50">
+      <footer className="mt-auto py-8 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-500 font-semibold bg-white dark:bg-slate-900/50 flex flex-col items-center gap-2">
         <p>© 2026 AeroSearch. Created for demonstration purposes. All rights reserved.</p>
+        <p className="flex items-center gap-3 text-slate-500 text-[11px]">
+          <a href="./meta-glass/" className="hover:text-blue-500 hover:underline flex items-center gap-1 font-medium text-slate-400">
+            <span>🕶️</span>
+            <span>Meta Glasses Photo &amp; Video Studio (3024x4032 &amp; EXIF)</span>
+          </a>
+        </p>
       </footer>
     </div>
   );
