@@ -561,14 +561,12 @@
           id="btnSecondaryRight" 
           type="button" 
           disabled
-          class="flex items-center justify-center gap-2 py-3 px-3.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/60 hover:border-pink-500/50 rounded-xl text-xs sm:text-sm font-mono font-medium text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-500/40"
+          class="flex items-center justify-center gap-2 py-3 px-3.5 bg-gradient-to-r from-pink-600/90 to-purple-600/90 hover:from-pink-500 hover:to-purple-500 border border-pink-500/50 hover:border-pink-400 rounded-xl text-xs sm:text-sm font-mono font-bold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-[0_0_15px_rgba(255,0,128,0.25)] focus:outline-none focus:ring-2 focus:ring-pink-500/40"
         >
-          <svg id="iconSave" class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8l-4-4H8z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 4v4h8V4" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 14h8v6H8z" />
+          <svg id="iconSave" class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
           </svg>
-          <span id="labelSecondaryRight" class="truncate">Save / Share</span>
+          <span id="labelSecondaryRight" class="truncate">Save to Photos 👓</span>
         </button>
       </div>
 
@@ -604,6 +602,10 @@
             <div><span class="text-cyan-400">Software:</span> <span id="telemetrySoftware" class="text-white font-bold">Meta View 171.0.0.38.109</span></div>
             <div><span class="text-cyan-400">Focal Length:</span> <span id="telemetryFocal" class="text-white font-bold">2.24 mm (12mm equiv)</span></div>
             <div><span class="text-cyan-400">EXIF Version:</span> <span class="text-emerald-400 font-bold">0232 (Meta Verified)</span></div>
+            <div class="sm:col-span-2 pt-1 border-t border-cyan-500/10 flex items-center justify-between text-[10px]">
+              <span class="text-cyan-400">Stella XMP Protocol:</span>
+              <span class="text-emerald-400 font-bold">ACTIVE (http://ns.facebook.com/meta/1.0/) ✓</span>
+            </div>
           </div>
         </details>
       </div>
@@ -624,10 +626,10 @@
             <div>
               <strong class="text-white font-mono">SAVE DIRECTLY TO CAMERA ROLL:</strong>
               <p class="text-slate-300 text-[11px] mt-0.5">
-                Open this site directly on your phone's browser (<span class="text-cyan-400 font-mono">Safari</span> or <span class="text-cyan-400 font-mono">Chrome</span>). Tap <strong class="text-pink-300">"Save / Share"</strong> and choose <span class="text-cyan-300 font-semibold">"Save Image"</span> directly into your Photos gallery.
+                Open this site on your phone (<span class="text-cyan-400 font-mono">Safari</span> or <span class="text-cyan-400 font-mono">Chrome</span>). Tap <strong class="text-pink-300">"ALL-IN-ONE CONVERT"</strong> or <strong class="text-pink-300">"Save to Photos"</strong>. When the share sheet opens, tap <span class="text-cyan-300 font-semibold">"Save Image"</span> so it saves directly to your <strong class="text-white">Camera Roll</strong> (not Files app).
               </p>
               <div class="mt-1.5 p-2 rounded bg-red-950/70 border border-red-500/50 text-[11px] text-red-200 font-mono leading-tight shadow-[0_0_12px_rgba(239,68,68,0.2)]">
-                ⚠️ <strong>CRITICAL: NEVER SEND VIA WHATSAPP OR TELEGRAM!</strong> Standard chat apps compress pictures and wipe 100% of the Meta EXIF hardware tags. If transferring from Mac/PC, use AirDrop (with "All Photos Data" checked) or Google Drive / Files.
+                ⚠️ <strong>CRITICAL: NEVER SEND VIA WHATSAPP OR TELEGRAM!</strong> Messaging apps compress images and wipe 100% of the Meta AI EXIF &amp; Stella XMP tags. If transferring from Mac/PC, use AirDrop (with "All Photos Data" enabled) or Google Drive.
               </div>
             </div>
           </div>
@@ -635,9 +637,9 @@
           <div class="flex items-start gap-2.5">
             <span class="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/50 text-purple-300 text-[11px] font-mono font-bold flex items-center justify-center">2</span>
             <div>
-              <strong class="text-white font-mono">OPEN INSTAGRAM STORIES (NOT FEED POST):</strong>
+              <strong class="text-white font-mono">OPEN INSTAGRAM STORIES (NOT FEED):</strong>
               <p class="text-slate-300 text-[11px] mt-0.5">
-                Open the Instagram app ➔ Tap <span class="text-pink-300 font-semibold">+ Your Story</span> (or swipe right to the Story camera). <em>Note: Instagram only triggers the interactive glasses badge &amp; 3D spin view in Stories mode, not in standard square profile feed posts.</em>
+                Open Instagram ➔ Swipe right to open the <strong class="text-pink-300">Story camera</strong>. <em>Note: Instagram only activates the interactive glasses badge &amp; 3D spin view in Stories, not square feed posts.</em>
               </p>
             </div>
           </div>
@@ -645,9 +647,9 @@
           <div class="flex items-start gap-2.5">
             <span class="flex-shrink-0 w-5 h-5 rounded-full bg-pink-500/20 border border-pink-500/50 text-pink-300 text-[11px] font-mono font-bold flex items-center justify-center">3</span>
             <div>
-              <strong class="text-white font-mono">TAP THE GLASSES / 3D SPIN VIEW ICON:</strong>
+              <strong class="text-white font-mono">SELECT FROM CAMERA ROLL &amp; TAP GLASSES (🕶️):</strong>
               <p class="text-slate-300 text-[11px] mt-0.5">
-                Tap your photo gallery in the bottom-left corner and pick your converted 3024x4032 photo. Instagram's scanner detects the <code class="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded font-mono">Meta AI</code> signature and shows the <span class="text-cyan-300 font-bold">Glasses / 3D Spin View icon</span> in the top toolbar! Tap it to activate the tilt perspective and Ray-Ban Meta badge.
+                Pick your photo from the Camera Roll gallery in Stories. Instagram's scanner detects the <code class="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded font-mono">RW4002 / Stella</code> signature: you will see the <strong class="text-cyan-300">Glasses icon (🕶️)</strong> right on the thumbnail and in the top toolbar! Tap it to unlock the 3D Ray-Ban model and Spin View!
               </p>
             </div>
           </div>
@@ -751,63 +753,74 @@
         name: 'Ray-Ban Meta (Gen 2)',
         badgeText: 'RAY-BAN META SMART GLASSES',
         tag: 'GEN 2',
+        hardwareCode: 'RW4002',
         exifMake: 'Meta AI',
         exifModel: 'Ray-Ban Meta Smart Glasses 2',
         software: 'Meta View 171.0.0.38.109',
+        firmware: 'v8.0.0.12-release_stella',
         photoWidth: 3024,
         photoHeight: 4032,
         videoWidth: 1440,
         videoHeight: 1920,
         lensModel: 'Ray-Ban Meta Ultra-Wide 12MP f/2.2',
-        lensMake: 'Meta AI',
+        lensMake: 'Meta & Luxottica',
         focalLength: [224, 100],
         fNumber: [22, 10],
         focalLength35mm: 12,
+        stellaPayload: 'stella_device=RW4002;app=com.facebook.stella;version=171.0;social_tag=made_with_meta_rayban',
         icon: '🕶️'
       },
       'rb_meta_wayfarer': {
         name: 'Ray-Ban Meta Wayfarer',
         badgeText: 'RAY-BAN META WAYFARER',
         tag: 'WAYFARER',
+        hardwareCode: 'RW4002',
         exifMake: 'Meta AI',
         exifModel: 'Ray-Ban Meta Smart Glasses 2',
         software: 'Meta View 171.0.0.38.109',
+        firmware: 'v8.0.0.12-release_stella',
         photoWidth: 3024,
         photoHeight: 4032,
         videoWidth: 1440,
         videoHeight: 1920,
         lensModel: 'Ray-Ban Meta Ultra-Wide 12MP f/2.2',
-        lensMake: 'Meta AI',
+        lensMake: 'Meta & Luxottica',
         focalLength: [224, 100],
         fNumber: [22, 10],
         focalLength35mm: 12,
+        stellaPayload: 'stella_device=RW4002;app=com.facebook.stella;version=171.0;social_tag=made_with_meta_rayban',
         icon: '👓'
       },
       'rb_stories': {
         name: 'Ray-Ban Stories (Gen 1)',
         badgeText: 'RAY-BAN STORIES SMART GLASSES',
         tag: 'GEN 1',
+        hardwareCode: 'RW4000',
         exifMake: 'Meta',
         exifModel: 'Ray-Ban Stories',
         software: 'Facebook View 120.0',
+        firmware: 'v5.0.0.8-release_stella',
         photoWidth: 2592,
         photoHeight: 1944,
         videoWidth: 1184,
         videoHeight: 1184,
         lensModel: 'Ray-Ban Stories Dual 5MP',
-        lensMake: 'Meta',
+        lensMake: 'Meta & Luxottica',
         focalLength: [220, 100],
         fNumber: [22, 10],
         focalLength35mm: 18,
+        stellaPayload: 'stella_device=RW4000;app=com.facebook.stella;version=120.0;social_tag=made_with_rayban_stories',
         icon: '🕶️'
       },
       'quest_3': {
         name: 'Meta Quest 3',
         badgeText: 'META QUEST 3 SPATIAL CAPTURE',
         tag: 'SPATIAL',
+        hardwareCode: 'MQ3',
         exifMake: 'Meta',
         exifModel: 'Meta Quest 3',
         software: 'Meta Horizon OS 68.0',
+        firmware: 'v68.0.0.400',
         photoWidth: 2064,
         photoHeight: 2208,
         videoWidth: 1920,
@@ -817,6 +830,7 @@
         focalLength: [180, 100],
         fNumber: [20, 10],
         focalLength35mm: 14,
+        stellaPayload: 'stella_device=MQ3;app=com.meta.horizon;version=68.0;social_tag=spatial_capture',
         icon: '🥽'
       }
     };
@@ -956,7 +970,7 @@
         if (telemetryFocal) telemetryFocal.textContent = `${(p.focalLength[0] / p.focalLength[1]).toFixed(2)} mm (${p.focalLength35mm || 12}mm equiv)`;
 
         labelSecondaryLeft.textContent = "Copy Base64";
-        labelSecondaryRight.textContent = "Save / Share";
+        labelSecondaryRight.textContent = "Save to Photos 👓";
 
         btnConvert.disabled = !state.photoImage || state.isConverting;
         btnSecondaryLeft.disabled = !state.convertedPhotoDataUrl;
@@ -985,7 +999,7 @@
         if (telemetryFocal) telemetryFocal.textContent = `${p.videoWidth}x${p.videoHeight} (Aspect Fill)`;
 
         labelSecondaryLeft.textContent = "Reset Video";
-        labelSecondaryRight.textContent = "Save / Share Video";
+        labelSecondaryRight.textContent = "Save Video to Photos";
 
         btnConvert.disabled = !state.videoFile || state.isConverting;
         btnSecondaryLeft.disabled = !state.videoFile;
@@ -1157,6 +1171,143 @@
       return `${d.getFullYear()}:${pad(d.getMonth()+1)}:${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     }
 
+    function strToUtf8(str) {
+      if (typeof TextEncoder !== 'undefined') {
+        return new TextEncoder().encode(str);
+      }
+      const utf8 = unescape(encodeURIComponent(str));
+      const bytes = new Uint8Array(utf8.length);
+      for (let i = 0; i < utf8.length; i++) bytes[i] = utf8.charCodeAt(i);
+      return bytes;
+    }
+
+    function buildXmpPacket(p, now = new Date(), width = 3024, height = 4032, type = 'photo') {
+      const dateIso = now.toISOString();
+      const make = p.exifMake || 'Meta AI';
+      const model = p.exifModel || 'Ray-Ban Meta Smart Glasses 2';
+      const software = p.software || 'Meta View 171.0.0.38.109';
+      const firmware = p.firmware || 'v8.0.0.12-release_stella';
+      const hardwareCode = p.hardwareCode || 'RW4002';
+      const hwShort = hardwareCode.split(' ')[0];
+      const stellaPayload = p.stellaPayload || `stella_device=${hwShort};app=com.facebook.stella;version=171.0;social_tag=made_with_meta_rayban`;
+
+      return `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about=""
+    xmlns:meta="http://ns.facebook.com/meta/1.0/"
+    xmlns:stella="http://ns.facebook.com/stella/1.0/"
+    xmlns:facebook="http://ns.facebook.com/1.0/"
+    xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+    xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
+    xmlns:exif="http://ns.adobe.com/exif/1.0/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/"
+    meta:DeviceModel="${model}"
+    meta:DeviceType="${hwShort}"
+    meta:HardwareCode="${hardwareCode}"
+    meta:Software="${software}"
+    meta:Firmware="${firmware}"
+    meta:CaptureSource="RayBanMeta"
+    meta:CaptureType="${type}"
+    meta:MediaOrigin="stella"
+    meta:AttributionTag="made_with_meta_rayban"
+    meta:SocialAttribution="Made with Ray-Ban | Meta"
+    meta:CompanionApp="com.facebook.stella"
+    meta:SocialTag="made_with_meta_rayban"
+    meta:ImageWidth="${width}"
+    meta:ImageHeight="${height}"
+    stella:device_model="${model}"
+    stella:device_code="${hwShort}"
+    stella:app_version="171.0.0.38.109"
+    stella:media_type="${type}"
+    stella:social_tag="made_with_meta_rayban"
+    stella:capture_origin="wearable_camera"
+    facebook:media_origin="stella"
+    xmp:CreatorTool="${software}"
+    xmp:CreateDate="${dateIso}"
+    xmp:ModifyDate="${dateIso}"
+    tiff:Make="${make}"
+    tiff:Model="${model}"
+    tiff:ImageWidth="${width}"
+    tiff:ImageLength="${height}"
+    photoshop:Credit="Ray-Ban | Meta"
+    photoshop:Source="Ray-Ban Meta Smart Glasses"
+    dc:description="${stellaPayload}"
+    dc:creator="Ray-Ban | Meta"
+    dc:rights="Captured with Ray-Ban Meta Smart Glasses">
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?>`;
+    }
+
+    function injectXmpSegment(jpegBytes, xmpString) {
+      if (jpegBytes.length < 4 || jpegBytes[0] !== 0xFF || jpegBytes[1] !== 0xD8) {
+        throw new Error("Invalid JPEG stream: Missing SOI marker");
+      }
+      const xmpHeader = strToUtf8("http://ns.adobe.com/xap/1.0/\0");
+      const xmpContent = strToUtf8(xmpString);
+      const segmentLength = 2 + xmpHeader.length + xmpContent.length;
+      if (segmentLength > 65535) {
+        throw new Error("XMP packet exceeds JPEG 64KB APP1 segment limit");
+      }
+
+      const app1Xmp = new Uint8Array(2 + segmentLength);
+      app1Xmp[0] = 0xFF;
+      app1Xmp[1] = 0xE1;
+      app1Xmp[2] = (segmentLength >> 8) & 0xFF;
+      app1Xmp[3] = segmentLength & 0xFF;
+      app1Xmp.set(xmpHeader, 4);
+      app1Xmp.set(xmpContent, 4 + xmpHeader.length);
+
+      let pos = 2;
+      let exifSeg = null;
+      const otherSegments = [];
+
+      while (pos < jpegBytes.length - 4 && jpegBytes[pos] === 0xFF) {
+        const marker = jpegBytes[pos + 1];
+        if (marker === 0xDA || marker === 0xD9) break;
+        if (marker === 0xD8 || (marker >= 0xD0 && marker <= 0xD7)) {
+          pos += 2;
+          continue;
+        }
+        const segLen = (jpegBytes[pos + 2] << 8) | jpegBytes[pos + 3];
+        const seg = jpegBytes.subarray(pos, pos + 2 + segLen);
+
+        if (marker === 0xE0) {
+          // Drop APP0 JFIF to prioritize APP1 EXIF
+        } else if (marker === 0xE1 && segLen >= 8 &&
+                   jpegBytes[pos + 4] === 0x45 && jpegBytes[pos + 5] === 0x78 &&
+                   jpegBytes[pos + 6] === 0x69 && jpegBytes[pos + 7] === 0x66) {
+          exifSeg = seg; // Preserve EXIF APP1
+        } else if (marker === 0xE1 && segLen >= 31) {
+          // Drop existing XMP APP1
+        } else {
+          otherSegments.push(seg);
+        }
+        pos += 2 + segLen;
+      }
+
+      const remainder = jpegBytes.subarray(pos);
+      const parts = [
+        new Uint8Array([0xFF, 0xD8]),
+        exifSeg || new Uint8Array(0),
+        app1Xmp,
+        ...otherSegments,
+        remainder
+      ];
+
+      const totalLen = parts.reduce((acc, p) => acc + p.length, 0);
+      const result = new Uint8Array(totalLen);
+      let offset = 0;
+      for (const part of parts) {
+        result.set(part, offset);
+        offset += part.length;
+      }
+      return result;
+    }
+
     function injectMetaExifFallback(jpegDataUrl, p) {
       try {
         const parts = jpegDataUrl.split(',');
@@ -1271,19 +1422,24 @@
       }
     }
 
-    function injectExif(canvasJpegDataUrl) {
+    function injectExifAndXmp(canvasJpegDataUrl) {
       const p = currentProfile();
+      let jpegWithExif = canvasJpegDataUrl;
+      const now = new Date();
+      const nowStr = getExifDate(now);
+
       if (typeof piexif !== 'undefined') {
         try {
-          const nowStr = getExifDate();
           const zeroth = {};
           const exif = {};
 
-          zeroth[piexif.ImageIFD.Make] = p.exifMake;
-          zeroth[piexif.ImageIFD.Model] = p.exifModel;
-          zeroth[piexif.ImageIFD.Software] = p.software;
+          zeroth[piexif.ImageIFD.Make] = p.exifMake || 'Meta AI';
+          zeroth[piexif.ImageIFD.Model] = p.exifModel || 'Ray-Ban Meta Smart Glasses 2';
+          zeroth[piexif.ImageIFD.Software] = p.software || 'Meta View 171.0.0.38.109';
           zeroth[piexif.ImageIFD.Orientation] = 1;
           zeroth[piexif.ImageIFD.DateTime] = nowStr;
+          zeroth[piexif.ImageIFD.Artist] = 'Ray-Ban | Meta';
+          zeroth[piexif.ImageIFD.Copyright] = 'Captured with Ray-Ban Meta Smart Glasses';
           zeroth[piexif.ImageIFD.XResolution] = [72, 1];
           zeroth[piexif.ImageIFD.YResolution] = [72, 1];
 
@@ -1293,24 +1449,53 @@
           exif[piexif.ExifIFD.DateTimeOriginal] = nowStr;
           exif[piexif.ExifIFD.DateTimeDigitized] = nowStr;
           exif[piexif.ExifIFD.LensModel] = p.lensModel;
-          exif[piexif.ExifIFD.LensMake] = p.lensMake || p.exifMake;
+          exif[piexif.ExifIFD.LensMake] = p.lensMake || 'Meta & Luxottica';
+          exif[piexif.ExifIFD.LensSpecification] = [[224, 100], [224, 100], [22, 10], [22, 10]];
           exif[piexif.ExifIFD.FocalLength] = p.focalLength || [224, 100];
-          if (piexif.ExifIFD.FocalLengthIn35mmFilm) {
-            exif[piexif.ExifIFD.FocalLengthIn35mmFilm] = p.focalLength35mm || 12;
-          }
+          exif[piexif.ExifIFD.FocalLengthIn35mmFilm] = p.focalLength35mm || 12;
           exif[piexif.ExifIFD.FNumber] = p.fNumber || [22, 10];
           exif[piexif.ExifIFD.ColorSpace] = 1;
           exif[piexif.ExifIFD.SceneCaptureType] = 0;
           exif[piexif.ExifIFD.ExposureProgram] = 2;
+          exif[piexif.ExifIFD.MeteringMode] = 5;
+          exif[piexif.ExifIFD.ISOSpeedRatings] = 100;
+          exif[piexif.ExifIFD.ExposureTime] = [1, 120];
+          exif[piexif.ExifIFD.BodySerialNumber] = (p.hardwareCode || 'RW4002').split(' ')[0];
+          exif[piexif.ExifIFD.UserComment] = "ASCII\0\0\0" + (p.stellaPayload || 'stella_device=RW4002;app=com.facebook.stella;version=171.0;social_tag=made_with_meta_rayban');
 
           const exifObj = { "0th": zeroth, "Exif": exif, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": null };
           const exifBytes = piexif.dump(exifObj);
-          return piexif.insert(exifBytes, canvasJpegDataUrl);
+          jpegWithExif = piexif.insert(exifBytes, canvasJpegDataUrl);
         } catch (e) {
-          return injectMetaExifFallback(canvasJpegDataUrl, p);
+          console.warn('Piexif dump/insert error, falling back:', e);
+          jpegWithExif = injectMetaExifFallback(canvasJpegDataUrl, p);
         }
+      } else {
+        jpegWithExif = injectMetaExifFallback(canvasJpegDataUrl, p);
       }
-      return injectMetaExifFallback(canvasJpegDataUrl, p);
+
+      // Inject Stella XMP APP1 segment
+      try {
+        const parts = jpegWithExif.split(',');
+        const binaryStr = atob(parts[1]);
+        const rawBytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) rawBytes[i] = binaryStr.charCodeAt(i);
+
+        const xmpString = buildXmpPacket(p, now, p.photoWidth, p.photoHeight, 'photo');
+        const finalBytes = injectXmpSegment(rawBytes, xmpString);
+
+        const blob = new Blob([finalBytes], { type: 'image/jpeg' });
+        let binary = '';
+        const chunk = 16384;
+        for (let i = 0; i < finalBytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, finalBytes.subarray(i, i + chunk));
+        }
+        const dataUrl = 'data:image/jpeg;base64,' + btoa(binary);
+        return { dataUrl, blob };
+      } catch (err) {
+        console.error('XMP injection error:', err);
+        return { dataUrl: jpegWithExif, blob: dataUrlToBlob(jpegWithExif) };
+      }
     }
 
     function dataUrlToBlob(dataUrl) {
@@ -1321,6 +1506,38 @@
       const u8arr = new Uint8Array(n);
       while (n--) u8arr[n] = bstr.charCodeAt(n);
       return new Blob([u8arr], { type: mime });
+    }
+
+    async function triggerSaveOrShare() {
+      const p = currentProfile();
+      if (!state.convertedPhotoBlob || !state.convertedPhotoDataUrl) return;
+      const filename = `IMG_${Date.now()}_meta.jpg`;
+      const file = new File([state.convertedPhotoBlob], filename, { type: 'image/jpeg', lastModified: Date.now() });
+
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          // On iOS, passing ONLY files (no text/url) renders the native photo share sheet with "Save Image" to Camera Roll!
+          await navigator.share({
+            files: [file]
+          });
+          showToast('SAVED / SHARED TO CAMERA ROLL', 'success');
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          console.warn('Share error:', err);
+        }
+      }
+
+      // Direct download fallback
+      const link = document.createElement('a');
+      link.href = state.convertedPhotoDataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        try { document.body.removeChild(link); } catch (e) {}
+      }, 500);
+      showToast('PHOTO SAVED (OPEN IN CAMERA ROLL)', 'success');
     }
 
     // Photo Conversion
@@ -1361,10 +1578,10 @@
 
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         const baseJpeg = canvas.toDataURL('image/jpeg', 0.96);
-        const finalDataUrl = injectExif(baseJpeg);
+        const { dataUrl: finalDataUrl, blob: finalBlob } = injectExifAndXmp(baseJpeg);
 
         state.convertedPhotoDataUrl = finalDataUrl;
-        state.convertedPhotoBlob = dataUrlToBlob(finalDataUrl);
+        state.convertedPhotoBlob = finalBlob;
 
         previewImage.src = finalDataUrl;
         photoStatusBadge.classList.remove('hidden');
@@ -1372,6 +1589,15 @@
         btnSecondaryRight.disabled = false;
 
         showToast(`CONVERTED: ${p.photoWidth}x${p.photoHeight} (${p.exifModel})`, 'success');
+        convertBtnText.textContent = "SAVING...";
+
+        // Automatically trigger native Camera Roll save sheet!
+        try {
+          await triggerSaveOrShare();
+        } catch (e) {
+          console.warn('Auto save error:', e);
+        }
+
         convertBtnText.textContent = "CONVERTED ✓";
         setTimeout(() => {
           convertBtnText.textContent = "ALL-IN-ONE CONVERT";
@@ -1575,49 +1801,23 @@
     btnSecondaryRight.addEventListener('click', async () => {
       const p = currentProfile();
       if (state.mode === 'photo') {
-        if (!state.convertedPhotoBlob || !state.convertedPhotoDataUrl) return;
-        const filename = `${p.exifModel.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${p.photoWidth}x${p.photoHeight}_${Date.now()}.jpg`;
-        const file = new File([state.convertedPhotoBlob], filename, { type: 'image/jpeg' });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `${p.name} Photo`,
-              text: 'Formatted with Meta Glasses Studio by @iiankitsingh'
-            });
-            showToast('SHARED SUCCESSFULLY', 'success');
-            return;
-          } catch (err) {
-            if (err.name === 'AbortError') return;
-          }
-        }
-
-        const link = document.createElement('a');
-        link.href = state.convertedPhotoDataUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast('PHOTO SAVED TO DOWNLOADS', 'success');
-
+        await triggerSaveOrShare();
       } else {
         if (!state.convertedVideoBlob) return;
         const ext = state.convertedVideoExt || 'mp4';
         const filename = `${p.exifModel.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_video_${p.videoWidth}x${p.videoHeight}_${Date.now()}.${ext}`;
-        const file = new File([state.convertedVideoBlob], filename, { type: state.convertedVideoBlob.type });
+        const file = new File([state.convertedVideoBlob], filename, { type: state.convertedVideoBlob.type, lastModified: Date.now() });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
-              files: [file],
-              title: `${p.name} Video`,
-              text: 'Converted with Meta Glasses Studio by @iiankitsingh'
+              files: [file]
             });
-            showToast('VIDEO SHARED SUCCESSFULLY', 'success');
+            showToast('VIDEO SAVED / SHARED TO PHOTOS', 'success');
             return;
           } catch (err) {
             if (err.name === 'AbortError') return;
+            console.warn('Video share error:', err);
           }
         }
 
@@ -1626,8 +1826,10 @@
         link.download = filename;
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
-        showToast('VIDEO SAVED TO DOWNLOADS', 'success');
+        setTimeout(() => {
+          try { document.body.removeChild(link); } catch (e) {}
+        }, 500);
+        showToast('VIDEO SAVED (OPEN IN CAMERA ROLL)', 'success');
       }
     });
 
