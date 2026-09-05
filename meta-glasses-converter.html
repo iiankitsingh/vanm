@@ -162,8 +162,15 @@
     }
   </script>
 
-  <!-- Piexif.js for EXIF metadata manipulation -->
-  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
+  <!-- Piexif.js for EXIF metadata manipulation (Local first, CDN fallback) -->
+  <script src="./piexif.js"></script>
+  <script>
+    if (typeof piexif === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js';
+      document.head.appendChild(s);
+    }
+  </script>
 
   <style>
     ::selection {
@@ -492,6 +499,9 @@
             <div id="photoStatusBadge" class="hidden mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono font-semibold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               <span>✓ 3024x4032 &amp; EXIF INJECTED</span>
             </div>
+            <p id="tapHoldHint" class="hidden mt-2 text-[10px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-500/40 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+              📱 iPhone: Tap &amp; hold photo above ➔ <strong>"Save to Photos"</strong>
+            </p>
           </div>
         </div>
 
@@ -568,6 +578,31 @@
           </svg>
           <span id="labelSecondaryRight" class="truncate">Save to Photos 👓</span>
         </button>
+      </div>
+
+      <!-- Direct Launch Instagram Stories Button -->
+      <a 
+        id="openInstagramBtn"
+        href="instagram://story-camera"
+        class="hidden mt-3 w-full py-3 px-4 bg-gradient-to-r from-purple-900/80 via-pink-900/80 to-purple-900/80 hover:from-purple-800 hover:to-pink-800 border border-pink-500/50 rounded-xl text-xs sm:text-sm font-mono font-bold text-pink-200 hover:text-white flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+      >
+        <svg class="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        </svg>
+        <span>OPEN INSTAGRAM STORIES ➔</span>
+      </a>
+
+      <!-- 3D Glasses Unlocking Guide -->
+      <div id="unlockGuideBox" class="mt-4 p-3.5 rounded-xl bg-slate-950/90 border border-pink-500/40 font-mono text-left text-xs shadow-[0_0_20px_rgba(255,0,85,0.15)]">
+        <div class="flex items-center gap-2 text-pink-400 font-bold mb-2">
+          <span>👓</span>
+          <span>HOW TO UNLOCK THE INSTAGRAM 3D GLASSES ICON:</span>
+        </div>
+        <ol class="space-y-1.5 text-slate-300 text-[11px] leading-relaxed list-decimal list-inside">
+          <li>Tap <strong class="text-white">SAVE TO CAMERA ROLL</strong> (or tap &amp; hold preview photo ➔ <strong class="text-white">"Save to Photos"</strong>). <span class="text-rose-400 font-semibold">Do not use WhatsApp or screenshots (they strip EXIF)!</span></li>
+          <li>Open <strong class="text-white">Instagram Stories</strong> and select the saved photo from your Camera Roll.</li>
+          <li>Look for the <strong class="text-cyan-300">Glasses (👓)</strong> badge on the photo thumbnail. Tap the <strong class="text-cyan-300">Glasses tool</strong> on the toolbar to activate 3D Spin View!</li>
+        </ol>
       </div>
 
       <!-- 9. Futuristic Telemetry Badges (Two-column grid) -->
@@ -766,7 +801,7 @@
         lensMake: 'Meta & Luxottica',
         focalLength: [224, 100],
         fNumber: [22, 10],
-        focalLength35mm: 12,
+        focalLength35mm: 15,
         stellaPayload: 'stella_device=RW4002;app=com.facebook.stella;version=171.0;social_tag=made_with_meta_rayban',
         icon: '🕶️'
       },
@@ -787,7 +822,7 @@
         lensMake: 'Meta & Luxottica',
         focalLength: [224, 100],
         fNumber: [22, 10],
-        focalLength35mm: 12,
+        focalLength35mm: 15,
         stellaPayload: 'stella_device=RW4002;app=com.facebook.stella;version=171.0;social_tag=made_with_meta_rayban',
         icon: '👓'
       },
@@ -845,12 +880,15 @@
       photoImage: null,
       convertedPhotoDataUrl: null,
       convertedPhotoBlob: null,
+      convertedPhotoBlobUrl: null,
+      convertedFileName: null,
 
       videoFile: null,
       videoBlobUrl: null,
       videoElement: null,
       convertedVideoBlob: null,
       convertedVideoUrl: null,
+      convertedVideoExt: null,
 
       isConverting: false,
       videoCancel: false
@@ -886,6 +924,8 @@
     const photoFileName = document.getElementById('photoFileName');
     const photoFileMeta = document.getElementById('photoFileMeta');
     const photoStatusBadge = document.getElementById('photoStatusBadge');
+    const tapHoldHint = document.getElementById('tapHoldHint');
+    const openInstagramBtn = document.getElementById('openInstagramBtn');
 
     const videoPreviewWrap = document.getElementById('videoPreviewWrap');
     const previewVideo = document.getElementById('previewVideo');
@@ -967,14 +1007,24 @@
         if (telemetryModel) telemetryModel.textContent = p.exifModel;
         if (telemetryLens) telemetryLens.textContent = p.lensModel;
         if (telemetrySoftware) telemetrySoftware.textContent = p.software;
-        if (telemetryFocal) telemetryFocal.textContent = `${(p.focalLength[0] / p.focalLength[1]).toFixed(2)} mm (${p.focalLength35mm || 12}mm equiv)`;
+        if (telemetryFocal) telemetryFocal.textContent = `${(p.focalLength[0] / p.focalLength[1]).toFixed(2)} mm (${p.focalLength35mm || 15}mm equiv)`;
 
         labelSecondaryLeft.textContent = "Copy Base64";
-        labelSecondaryRight.textContent = "Save to Photos 👓";
+        labelSecondaryRight.textContent = "Download File";
 
-        btnConvert.disabled = !state.photoImage || state.isConverting;
-        btnSecondaryLeft.disabled = !state.convertedPhotoDataUrl;
-        btnSecondaryRight.disabled = !state.convertedPhotoDataUrl;
+        if (state.convertedPhotoBlob) {
+          convertBtnIcon.textContent = "👓";
+          convertBtnText.textContent = "SAVE TO CAMERA ROLL (GLASSES 👓)";
+          btnConvert.disabled = false;
+          btnSecondaryLeft.disabled = false;
+          btnSecondaryRight.disabled = false;
+        } else {
+          convertBtnIcon.textContent = "⚡";
+          convertBtnText.textContent = state.photoImage ? "PROCESSING EXIF..." : "SELECT PHOTO TO CONVERT";
+          btnConvert.disabled = !state.photoImage;
+          btnSecondaryLeft.disabled = true;
+          btnSecondaryRight.disabled = true;
+        }
       } else {
         appTitle.textContent = "VIDEO CONVERTER";
         appSubtext.textContent = `1-Tap ${p.videoWidth}x${p.videoHeight} Smart Glasses aspect-fill crop, Audio retention & Video Save.`;
@@ -999,11 +1049,20 @@
         if (telemetryFocal) telemetryFocal.textContent = `${p.videoWidth}x${p.videoHeight} (Aspect Fill)`;
 
         labelSecondaryLeft.textContent = "Reset Video";
-        labelSecondaryRight.textContent = "Save Video to Photos";
+        labelSecondaryRight.textContent = "Download Video";
 
-        btnConvert.disabled = !state.videoFile || state.isConverting;
+        if (state.convertedVideoBlob) {
+          convertBtnIcon.textContent = "🎬";
+          convertBtnText.textContent = "SAVE VIDEO TO CAMERA ROLL";
+          btnConvert.disabled = false;
+          btnSecondaryRight.disabled = false;
+        } else {
+          convertBtnIcon.textContent = "🎬";
+          convertBtnText.textContent = "CONVERT VIDEO";
+          btnConvert.disabled = !state.videoFile || state.isConverting;
+          btnSecondaryRight.disabled = true;
+        }
         btnSecondaryLeft.disabled = !state.videoFile;
-        btnSecondaryRight.disabled = !state.convertedVideoBlob;
       }
     }
 
@@ -1049,6 +1108,9 @@
     deviceModelSelect.addEventListener('change', (e) => {
       state.profileKey = e.target.value;
       updateUI();
+      if (state.mode === 'photo' && state.photoImage) {
+        processPhotoInternal();
+      }
       showToast(`PROFILE: ${currentProfile().name}`, 'info');
     });
 
@@ -1110,7 +1172,13 @@
       state.photoFile = file;
       state.convertedPhotoDataUrl = null;
       state.convertedPhotoBlob = null;
+      if (state.convertedPhotoBlobUrl) {
+        URL.revokeObjectURL(state.convertedPhotoBlobUrl);
+        state.convertedPhotoBlobUrl = null;
+      }
       photoStatusBadge.classList.add('hidden');
+      if (tapHoldHint) tapHoldHint.classList.add('hidden');
+      if (openInstagramBtn) openInstagramBtn.classList.add('hidden');
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -1126,9 +1194,8 @@
           photoPreviewWrap.classList.remove('hidden');
           videoPreviewWrap.classList.add('hidden');
 
-          btnConvert.disabled = false;
-          convertBtnText.textContent = "ALL-IN-ONE CONVERT";
-          showToast('PHOTO LOADED • READY FOR CONVERSION', 'info');
+          // Immediately process & inject EXIF + XMP in the background!
+          processPhotoInternal();
         };
         img.src = state.photoDataUrl;
       };
@@ -1323,7 +1390,7 @@
         const lensStr = (p.lensModel || 'Ray-Ban Meta Ultra-Wide 12MP f/2.2') + '\0';
         const focalLen = p.focalLength || [224, 100];
         const fNum = p.fNumber || [22, 10];
-        const focal35 = p.focalLength35mm || 12;
+        const focal35 = p.focalLength35mm || 15;
 
         const tiffHeader = [0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00];
         const numIfd0Tags = 5;
@@ -1452,7 +1519,7 @@
           exif[piexif.ExifIFD.LensMake] = p.lensMake || 'Meta & Luxottica';
           exif[piexif.ExifIFD.LensSpecification] = [[224, 100], [224, 100], [22, 10], [22, 10]];
           exif[piexif.ExifIFD.FocalLength] = p.focalLength || [224, 100];
-          exif[piexif.ExifIFD.FocalLengthIn35mmFilm] = p.focalLength35mm || 12;
+          exif[piexif.ExifIFD.FocalLengthIn35mmFilm] = p.focalLength35mm || 15;
           exif[piexif.ExifIFD.FNumber] = p.fNumber || [22, 10];
           exif[piexif.ExifIFD.ColorSpace] = 1;
           exif[piexif.ExifIFD.SceneCaptureType] = 0;
@@ -1508,50 +1575,11 @@
       return new Blob([u8arr], { type: mime });
     }
 
-    async function triggerSaveOrShare() {
+    function processPhotoInternal() {
       const p = currentProfile();
-      if (!state.convertedPhotoBlob || !state.convertedPhotoDataUrl) return;
-      const filename = `IMG_${Date.now()}_meta.jpg`;
-      const file = new File([state.convertedPhotoBlob], filename, { type: 'image/jpeg', lastModified: Date.now() });
+      if (!state.photoImage) return;
 
-      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          // On iOS, passing ONLY files (no text/url) renders the native photo share sheet with "Save Image" to Camera Roll!
-          await navigator.share({
-            files: [file]
-          });
-          showToast('SAVED / SHARED TO CAMERA ROLL', 'success');
-          return;
-        } catch (err) {
-          if (err.name === 'AbortError') return;
-          console.warn('Share error:', err);
-        }
-      }
-
-      // Direct download fallback
-      const link = document.createElement('a');
-      link.href = state.convertedPhotoDataUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        try { document.body.removeChild(link); } catch (e) {}
-      }, 500);
-      showToast('PHOTO SAVED (OPEN IN CAMERA ROLL)', 'success');
-    }
-
-    // Photo Conversion
-    async function convertPhoto() {
-      const p = currentProfile();
       try {
-        state.isConverting = true;
-        btnConvert.disabled = true;
-        convertSpinner.classList.remove('hidden');
-        convertBtnIcon.classList.add('hidden');
-        convertBtnText.textContent = "PROCESSING...";
-
-        await new Promise(r => setTimeout(r, 60));
-
         const canvas = document.createElement('canvas');
         canvas.width = p.photoWidth;
         canvas.height = p.photoHeight;
@@ -1580,38 +1608,83 @@
         const baseJpeg = canvas.toDataURL('image/jpeg', 0.96);
         const { dataUrl: finalDataUrl, blob: finalBlob } = injectExifAndXmp(baseJpeg);
 
-        state.convertedPhotoDataUrl = finalDataUrl;
-        state.convertedPhotoBlob = finalBlob;
-
-        previewImage.src = finalDataUrl;
-        photoStatusBadge.classList.remove('hidden');
-        btnSecondaryLeft.disabled = false;
-        btnSecondaryRight.disabled = false;
-
-        showToast(`CONVERTED: ${p.photoWidth}x${p.photoHeight} (${p.exifModel})`, 'success');
-        convertBtnText.textContent = "SAVING...";
-
-        // Automatically trigger native Camera Roll save sheet!
-        try {
-          await triggerSaveOrShare();
-        } catch (e) {
-          console.warn('Auto save error:', e);
+        if (state.convertedPhotoBlobUrl) {
+          URL.revokeObjectURL(state.convertedPhotoBlobUrl);
         }
 
-        convertBtnText.textContent = "CONVERTED ✓";
-        setTimeout(() => {
-          convertBtnText.textContent = "ALL-IN-ONE CONVERT";
-          btnConvert.disabled = false;
-        }, 2000);
+        state.convertedPhotoDataUrl = finalDataUrl;
+        state.convertedPhotoBlob = finalBlob;
+        state.convertedPhotoBlobUrl = URL.createObjectURL(finalBlob);
+        state.convertedFileName = `IMG_${Date.now()}_meta.jpg`;
+
+        // Direct iOS tap & hold support - writing blob URL into <img> allows native "Save to Photos"
+        previewImage.src = state.convertedPhotoBlobUrl;
+
+        photoStatusBadge.classList.remove('hidden');
+        if (tapHoldHint) tapHoldHint.classList.remove('hidden');
+        if (openInstagramBtn) openInstagramBtn.classList.remove('hidden');
+
+        updateUI();
+        showToast(`✓ EXIF INJECTED (${p.name}) • READY TO SAVE`, 'success');
       } catch (err) {
+        console.error('Error during auto-processing photo:', err);
         showToast('ERROR: ' + err.message, 'error');
-        btnConvert.disabled = false;
-        convertBtnText.textContent = "ALL-IN-ONE CONVERT";
-      } finally {
-        state.isConverting = false;
-        convertSpinner.classList.add('hidden');
-        convertBtnIcon.classList.remove('hidden');
       }
+    }
+
+    function executeBlobDownload(blobUrl, filename) {
+      if (!blobUrl) return;
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename || `IMG_${Date.now()}_meta.jpg`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        try {
+          if (document.body.contains(link)) document.body.removeChild(link);
+        } catch (e) {}
+      }, 1000);
+      showToast('PHOTO DOWNLOADED (CHECK CAMERA ROLL / DOWNLOADS)', 'success');
+    }
+
+    function triggerSaveOrShare() {
+      const p = currentProfile();
+      if (!state.convertedPhotoBlob) {
+        if (state.photoImage) {
+          processPhotoInternal();
+        } else {
+          showToast('SELECT A PHOTO FIRST', 'error');
+          return;
+        }
+      }
+
+      const filename = state.convertedFileName || `IMG_${Date.now()}_meta.jpg`;
+      const file = new File([state.convertedPhotoBlob], filename, { type: 'image/jpeg', lastModified: Date.now() });
+
+      // iOS Safari and mobile browsers require navigator.share to run synchronously in the click gesture!
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          files: [file]
+        }).then(() => {
+          showToast('SAVED / SHARED TO CAMERA ROLL', 'success');
+        }).catch((err) => {
+          if (err && err.name === 'AbortError') return;
+          console.warn('Native share error, falling back to download:', err);
+          executeBlobDownload(state.convertedPhotoBlobUrl, filename);
+        });
+        return;
+      }
+
+      executeBlobDownload(state.convertedPhotoBlobUrl, filename);
+    }
+
+    // Photo Conversion / Save Trigger
+    function convertPhoto() {
+      if (!state.convertedPhotoBlob) {
+        processPhotoInternal();
+      }
+      triggerSaveOrShare();
     }
 
     // Video Conversion
@@ -1801,7 +1874,11 @@
     btnSecondaryRight.addEventListener('click', async () => {
       const p = currentProfile();
       if (state.mode === 'photo') {
-        await triggerSaveOrShare();
+        if (!state.convertedPhotoBlobUrl) {
+          if (state.photoImage) processPhotoInternal();
+          else return;
+        }
+        executeBlobDownload(state.convertedPhotoBlobUrl, state.convertedFileName);
       } else {
         if (!state.convertedVideoBlob) return;
         const ext = state.convertedVideoExt || 'mp4';
