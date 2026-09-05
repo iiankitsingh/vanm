@@ -507,12 +507,12 @@ export const MetaGlassesConverter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col items-center justify-center px-4 py-8 antialiased selection:bg-pink-500/30 selection:text-white relative overflow-x-hidden">
-      {/* Dynamic Background Glows */}
+    <div className="min-h-screen bg-[#02040a] text-slate-100 flex flex-col items-center justify-center px-4 py-8 antialiased selection:bg-cyan-500/30 selection:text-cyan-300 relative overflow-x-hidden font-sans">
+      {/* Futuristic Ambient Glows & Subtle Grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-blue-600/20 blur-[130px] rounded-full" />
-        <div className="absolute bottom-10 left-10 w-[350px] h-[350px] bg-purple-600/15 blur-[120px] rounded-full" />
-        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-pink-600/15 blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-cyan-500/15 blur-[140px] rounded-full" />
+        <div className="absolute bottom-10 left-10 w-[400px] h-[400px] bg-purple-600/15 blur-[140px] rounded-full" />
+        <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-pink-600/15 blur-[140px] rounded-full" />
       </div>
 
       {/* Hidden File Inputs */}
@@ -546,6 +546,38 @@ export const MetaGlassesConverter: React.FC = () => {
         onChange={(e) => handleVideoFile(e.target.files?.[0])}
         className="hidden"
       />
+
+      {/* Top Header with Instagram Creator Badge */}
+      <header className="relative z-20 w-full max-w-md mx-auto mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-950/60 border border-cyan-500/40 shadow-[0_0_12px_rgba(0,240,255,0.3)]">
+            <span className="text-base">🕶️</span>
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400" />
+          </div>
+          <div>
+            <span className="text-xs font-mono font-bold tracking-wider text-cyan-400">META // HUD</span>
+            <p className="text-[10px] font-mono text-slate-400">SPATIAL STUDIO</p>
+          </div>
+        </div>
+
+        <a
+          href="https://www.instagram.com/iiankitsingh/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#f09433]/20 via-[#dc2743]/20 to-[#bc1888]/20 border border-pink-500/40 hover:border-pink-400 text-slate-200 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(220,39,67,0.25)] hover:scale-[1.02]"
+        >
+          <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 flex items-center justify-center p-0.5">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.13-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+          </div>
+          <div className="flex flex-col items-start leading-none">
+            <span className="text-[9px] font-mono text-pink-300/80 uppercase">CREATOR</span>
+            <span className="text-xs font-bold text-white tracking-tight">@iiankitsingh ↗</span>
+          </div>
+        </a>
+      </header>
 
       <div className="relative z-10 max-w-md w-full flex flex-col items-center">
         {/* 1. Top Badge */}
